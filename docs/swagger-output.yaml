@@ -1,0 +1,385 @@
+openapi: 3.0.0
+info:
+  title: Express API Gateway
+  description: Dokumentasi untuk API Gateway yang mengelola autentikasi, admin, layanan, dan perizinan.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Server Lokal
+
+tags:
+  - name: auth
+    description: Endpoint untuk otentikasi pengguna
+  - name: admin
+    description: Endpoint untuk tugas administrasi
+  - name: gateway
+    description: Endpoint untuk manajemen layanan gateway
+  - name: permissions
+    description: Endpoint untuk manajemen perizinan layanan
+
+paths:
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Login Pengguna
+      description: Melakukan otentikasi superadmin atau pengguna tenant.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  message:
+                    type: string
+                    example: Login successful
+        "401":
+          description: Kredensial tidak valid
+
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Registrasi Pengguna
+      description: Mendaftarkan pengguna baru dengan peran dan tenant tertentu.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "200":
+          description: Registrasi berhasil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+
+  /admin/tenants:
+    get:
+      tags: [admin]
+      summary: Mendapatkan Daftar Tenant
+      description: Mengambil daftar semua tenant yang ada.
+      responses:
+        "200":
+          description: Daftar tenant berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: default
+
+  /admin/users/{tenantId}:
+    get:
+      tags: [admin]
+      summary: Mendapatkan Pengguna Berdasarkan Tenant
+      description: Mengambil daftar pengguna dari tenant tertentu.
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari tenant
+      responses:
+        "200":
+          description: Daftar pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: user_example
+                    role:
+                      type: string
+                      example: admin
+
+  /admin/users/{tenantId}/role:
+    post:
+      tags: [admin]
+      summary: Mengubah Peran Pengguna
+      description: Mengubah peran (role) pengguna di dalam tenant tertentu.
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoleRequest"
+      responses:
+        "200":
+          description: Peran pengguna berhasil diubah
+
+  /gateway/services:
+    get:
+      tags: [gateway]
+      summary: Mendapatkan Daftar Layanan
+      description: Mengambil daftar semua layanan yang dikelola oleh gateway.
+      responses:
+        "200":
+          description: Daftar layanan berhasil diambil
+    post:
+      tags: [gateway]
+      summary: Menambahkan Layanan Baru
+      description: Menambahkan layanan baru ke dalam gateway.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddServiceRequest"
+      responses:
+        "200":
+          description: Layanan berhasil ditambahkan
+
+  /gateway/services/{serviceId}/rate-limit:
+    put:
+      tags: [gateway]
+      summary: Memperbarui Batasan Tarif (Rate-Limit)
+      description: Memperbarui batasan tarif global untuk layanan tertentu.
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari layanan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRateLimitRequest"
+      responses:
+        "200":
+          description: Batasan tarif berhasil diperbarui
+
+  /gateway/services/{serviceId}/user-rate-limit:
+    put:
+      tags: [gateway]
+      summary: Memperbarui Batasan Tarif Pengguna
+      description: Memperbarui batasan tarif untuk pengguna spesifik di layanan tertentu.
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari layanan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRateLimitRequest"
+      responses:
+        "200":
+          description: Batasan tarif pengguna berhasil diperbarui
+
+  /gateway/services/{serviceId}/user-rate-limits:
+    get:
+      tags: [gateway]
+      summary: Mendapatkan Daftar Batasan Tarif Pengguna
+      description: Mengambil daftar batasan tarif untuk setiap pengguna di layanan tertentu.
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari layanan
+      responses:
+        "200":
+          description: Daftar batasan tarif pengguna berhasil diambil
+
+  /gateway/services/{serviceId}/user-rate-limits/{userId}:
+    get:
+      tags: [gateway]
+      summary: Mendapatkan Batasan Tarif Berdasarkan Pengguna
+      description: Mengambil batasan tarif spesifik untuk pengguna di layanan tertentu.
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari layanan
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari pengguna
+      responses:
+        "200":
+          description: Batasan tarif pengguna berhasil diambil
+
+  /api/v1/todo/users:
+    get:
+      tags: [gateway]
+      summary: Mengonsumsi API Proxy
+      description: Endpoint ini berfungsi sebagai proxy untuk mengonsumsi API eksternal.
+      responses:
+        "200":
+          description: Respons dari API proxy
+
+  /gateway/services/{serviceId}/permissions:
+    post:
+      tags: [permissions]
+      summary: Memberikan Perizinan
+      description: Memberikan perizinan akses ke layanan untuk pengguna tertentu.
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari layanan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrantPermissionRequest"
+      responses:
+        "200":
+          description: Perizinan berhasil diberikan
+
+  /gateway/services/{serviceId}/permissions/{userId}:
+    delete:
+      tags: [permissions]
+      summary: Menghapus Perizinan
+      description: Menghapus perizinan akses ke layanan untuk pengguna tertentu.
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari layanan
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID unik dari pengguna
+      responses:
+        "200":
+          description: Perizinan berhasil dihapus
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password, tenant]
+      properties:
+        username:
+          type: string
+          example: alam
+        password:
+          type: string
+          example: alam
+        tenant:
+          type: string
+          example: default
+
+    RegisterRequest:
+      type: object
+      required: [username, password, role, tenant]
+      properties:
+        username:
+          type: string
+          example: alam
+        password:
+          type: string
+          example: alam
+        role:
+          type: string
+          example: admin
+        tenant:
+          type: string
+          example: default
+
+    UpdateRoleRequest:
+      type: object
+      required: [userId, role]
+      properties:
+        userId:
+          type: integer
+          example: 2
+        role:
+          type: string
+          example: admin
+
+    AddServiceRequest:
+      type: object
+      required: [version, name, target]
+      properties:
+        version:
+          type: string
+          example: v1
+        name:
+          type: string
+          example: todo
+        target:
+          type: string
+          example: https://688eeca4f21ab1769f87bc60.mockapi.io/todo
+
+    UpdateRateLimitRequest:
+      type: object
+      required: [rate_limit]
+      properties:
+        rate_limit:
+          type: integer
+          example: 100
+
+    UpdateUserRateLimitRequest:
+      type: object
+      required: [rate_limit]
+      properties:
+        rate_limit:
+          type: integer
+          example: 1000
+
+    GrantPermissionRequest:
+      type: object
+      required: [user_id]
+      properties:
+        user_id:
+          type: integer
+          example: 2

@@ -1,13 +1,19 @@
-const express = require('express');
-const authRoutes = require('./routes/auth');
-const adminRoutes = require('./routes/admin');
-const gatewayRoutes = require('./routes/gateway');
-const proxyRoutes = require('./routes/proxy');
+const express           = require('express');
+const authRoutes        = require('./routes/auth');
+const adminRoutes       = require('./routes/admin');
+const gatewayRoutes     = require('./routes/gateway');
+const proxyRoutes       = require('./routes/proxy');
 const authenticateToken = require('./middlewares/auth');
+const swaggerUi         = require('swagger-ui-express');
+const fs                = require('fs');
+const yaml              = require('js-yaml');
+const swaggerDocument   = yaml.load(fs.readFileSync('./docs/swagger-output.yaml', 'utf8'));
 
 const app = express();
 
 app.use(express.json());
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Route proxy dinamis yang meneruskan request ke service tujuan
 app.use('/api', authenticateToken, proxyRoutes);

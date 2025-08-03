@@ -8,6 +8,7 @@ function getLimiterKey(tenantId, userId, serviceId, maxRequests) {
 }
 
 const dynamicRateLimiter = async (req, res, next) => {
+  console.log(req.user);
   try {
     const match = req.originalUrl.match(/^\/api\/(v\d+)\/([^\/]+)/);
     if (!match) return next();

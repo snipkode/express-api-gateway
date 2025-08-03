@@ -22,7 +22,7 @@ function createRateLimiter(max) {
 }
 
 // Proxy all routes: /api/:version/:serviceName/*
-router.use('/api/:version/:serviceName', authenticateToken, dynamicRateLimiter, async (req, res, next) => {
+router.use('/:version/:serviceName', authenticateToken, async (req, res, next) => {
   const { version, serviceName } = req.params;
   const tenantId = req.user.tenant_id;
 
@@ -43,7 +43,7 @@ router.use('/api/:version/:serviceName', authenticateToken, dynamicRateLimiter, 
       // Build axios config
       const axiosConfig = {
         method: req.method,
-        url: service.target + req.originalUrl.replace(`/api/${version}/${serviceName}`, ''),
+        url: service.target + req.originalUrl.replace(`/${version}/${serviceName}`, ''),
         headers: { ...req.headers },
         data: req.body,
         responseType: 'stream',

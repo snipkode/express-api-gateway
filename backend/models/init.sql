@@ -1,7 +1,8 @@
 -- Tabel tenant
 CREATE TABLE IF NOT EXISTS tenants (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT UNIQUE NOT NULL
+  name TEXT UNIQUE NOT NULL,
+  status TEXT DEFAULT 'active' -- aktif secara default
 );
 
 -- Tabel pengguna

@@ -9,18 +9,15 @@ const fs                = require('fs');
 const yaml              = require('js-yaml');
 const cors              = require('cors');
 const swaggerDocument   = yaml.load(fs.readFileSync('./docs/swagger-output.yaml', 'utf8'));
+const requestLogger     = require('./middlewares/requestLogger'); 
 
 const app = express();
+require('dotenv').config();
 
 // ⏱ Middleware logging durasi request
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    console.log(`[${req.method}] ${req.originalUrl} - ${duration}ms`);
-  });
-  next();
-});
+if (process.env.ENABLE_REQUEST_LOGGER) {
+  app.use(requestLogger);
+}
 
 app.use(express.json());
 app.use(cors());
@@ -52,5 +49,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`API Gateway running on port ${PORT}`);
+  const now = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+  console.log(`🚀 [${now}] API Gateway is running on port ${PORT}`);
 });

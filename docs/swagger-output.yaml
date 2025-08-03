@@ -1,385 +1,277 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: Express API Gateway
-  description: Dokumentasi untuk API Gateway yang mengelola autentikasi, admin, layanan, dan perizinan.
+  title: Multi-Tenant Gateway API
   version: 1.0.0
+  description: API untuk autentikasi, manajemen tenant, service gateway, dan proxy antar layanan.
 servers:
   - url: http://localhost:3000
-    description: Server Lokal
+    description: Local development server
 
 tags:
-  - name: auth
-    description: Endpoint untuk otentikasi pengguna
-  - name: admin
-    description: Endpoint untuk tugas administrasi
-  - name: gateway
-    description: Endpoint untuk manajemen layanan gateway
-  - name: permissions
-    description: Endpoint untuk manajemen perizinan layanan
+  - name: Auth
+    description: Autentikasi dan registrasi pengguna
+  - name: Admin
+    description: Manajemen tenant dan user oleh superadmin
+  - name: Gateway
+    description: Pengaturan service, rate limit, dan permission
+  - name: Proxy
+    description: Dynamic proxy untuk service antar-tenant
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Error message here
 
 paths:
   /auth/login:
     post:
-      tags: [auth]
-      summary: Login Pengguna
-      description: Melakukan otentikasi superadmin atau pengguna tenant.
+      tags: [Auth]
+      summary: Login user
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginRequest"
+              type: object
+              required: [username, password, tenant]
+              properties:
+                username: { type: string, example: johndoe }
+                password: { type: string, example: secret123 }
+                tenant: { type: string, example: Tenant A }
       responses:
         "200":
-          description: Login berhasil
+          description: Login sukses
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-                  message:
-                    type: string
-                    example: Login successful
+                  token: { type: string }
+        "400":
+          {
+            description: Bad request,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+          }
         "401":
-          description: Kredensial tidak valid
+          {
+            description: Unauthorized,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+          }
 
   /auth/register:
     post:
-      tags: [auth]
-      summary: Registrasi Pengguna
-      description: Mendaftarkan pengguna baru dengan peran dan tenant tertentu.
+      tags: [Auth]
+      summary: Registrasi user baru (oleh superadmin)
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RegisterRequest"
+              type: object
+              required: [username, password, role]
+              properties:
+                username: { type: string, example: janedoe }
+                password: { type: string, example: secret456 }
+                role: { type: string, example: admin }
+      responses:
+        "200": { description: User registered }
+        "403":
+          {
+            description: Forbidden,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+          }
+        "409":
+          {
+            description: Conflict,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+          }
+
+  /admin/tenants:
+    get:
+      tags: [Admin]
+      summary: Lihat semua tenant
+      security: [{ bearerAuth: [] }]
       responses:
         "200":
-          description: Registrasi berhasil
+          description: OK
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: User registered successfully
-
-  /admin/tenants:
-    get:
-      tags: [admin]
-      summary: Mendapatkan Daftar Tenant
-      description: Mengambil daftar semua tenant yang ada.
-      responses:
-        "200":
-          description: Daftar tenant berhasil diambil
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    name:
-                      type: string
-                      example: default
+                  tenants:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
 
   /admin/users/{tenantId}:
     get:
-      tags: [admin]
-      summary: Mendapatkan Pengguna Berdasarkan Tenant
-      description: Mengambil daftar pengguna dari tenant tertentu.
+      tags: [Admin]
+      summary: Lihat user tenant
+      security: [{ bearerAuth: [] }]
       parameters:
-        - name: tenantId
-          in: path
+        - in: path
+          name: tenantId
           required: true
-          schema:
-            type: integer
-          description: ID unik dari tenant
+          schema: { type: string }
       responses:
         "200":
-          description: Daftar pengguna berhasil diambil
+          description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    username:
-                      type: string
-                      example: user_example
-                    role:
-                      type: string
-                      example: admin
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        username: { type: string }
+                        role: { type: string }
 
   /admin/users/{tenantId}/role:
     post:
-      tags: [admin]
-      summary: Mengubah Peran Pengguna
-      description: Mengubah peran (role) pengguna di dalam tenant tertentu.
+      tags: [Admin]
+      summary: Update role user tenant
+      security: [{ bearerAuth: [] }]
       parameters:
-        - name: tenantId
-          in: path
+        - in: path
+          name: tenantId
           required: true
-          schema:
-            type: integer
-          description: ID unik dari tenant
+          schema: { type: string }
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateRoleRequest"
+              type: object
+              required: [userId, role]
+              properties:
+                userId: { type: string }
+                role: { type: string }
       responses:
-        "200":
-          description: Peran pengguna berhasil diubah
+        "200": { description: User role updated }
+        "400":
+          {
+            description: Bad request,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+          }
+        "404":
+          {
+            description: Not found,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+          }
 
   /gateway/services:
     get:
-      tags: [gateway]
-      summary: Mendapatkan Daftar Layanan
-      description: Mengambil daftar semua layanan yang dikelola oleh gateway.
+      tags: [Gateway]
+      summary: List semua services tenant
+      security: [{ bearerAuth: [] }]
       responses:
         "200":
-          description: Daftar layanan berhasil diambil
-    post:
-      tags: [gateway]
-      summary: Menambahkan Layanan Baru
-      description: Menambahkan layanan baru ke dalam gateway.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddServiceRequest"
-      responses:
-        "200":
-          description: Layanan berhasil ditambahkan
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  services:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        version: { type: string }
+                        target: { type: string }
+                        rate_limit: { type: integer }
 
-  /gateway/services/{serviceId}/rate-limit:
-    put:
-      tags: [gateway]
-      summary: Memperbarui Batasan Tarif (Rate-Limit)
-      description: Memperbarui batasan tarif global untuk layanan tertentu.
-      parameters:
-        - name: serviceId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID unik dari layanan
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateRateLimitRequest"
-      responses:
-        "200":
-          description: Batasan tarif berhasil diperbarui
-
-  /gateway/services/{serviceId}/user-rate-limit:
-    put:
-      tags: [gateway]
-      summary: Memperbarui Batasan Tarif Pengguna
-      description: Memperbarui batasan tarif untuk pengguna spesifik di layanan tertentu.
-      parameters:
-        - name: serviceId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID unik dari layanan
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateUserRateLimitRequest"
-      responses:
-        "200":
-          description: Batasan tarif pengguna berhasil diperbarui
-
-  /gateway/services/{serviceId}/user-rate-limits:
+  /proxy/docs/{version}/{serviceName}/swagger.json:
     get:
-      tags: [gateway]
-      summary: Mendapatkan Daftar Batasan Tarif Pengguna
-      description: Mengambil daftar batasan tarif untuk setiap pengguna di layanan tertentu.
+      tags: [Proxy]
+      summary: Ambil Swagger JSON dari service
       parameters:
-        - name: serviceId
-          in: path
+        - in: path
+          name: version
           required: true
-          schema:
-            type: integer
-          description: ID unik dari layanan
+          schema: { type: string }
+        - in: path
+          name: serviceName
+          required: true
+          schema: { type: string }
       responses:
         "200":
-          description: Daftar batasan tarif pengguna berhasil diambil
+          description: Swagger JSON
+          content:
+            application/json:
+              schema:
+                type: object
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  /gateway/services/{serviceId}/user-rate-limits/{userId}:
+  /proxy/{version}/{serviceName}/{any*}:
     get:
-      tags: [gateway]
-      summary: Mendapatkan Batasan Tarif Berdasarkan Pengguna
-      description: Mengambil batasan tarif spesifik untuk pengguna di layanan tertentu.
+      tags: [Proxy]
+      summary: Proxy dinamis ke target service
       parameters:
-        - name: serviceId
-          in: path
+        - in: path
+          name: version
           required: true
-          schema:
-            type: integer
-          description: ID unik dari layanan
-        - name: userId
-          in: path
+          schema: { type: string }
+        - in: path
+          name: serviceName
           required: true
-          schema:
-            type: integer
-          description: ID unik dari pengguna
+          schema: { type: string }
+        - in: path
+          name: any*
+          required: false
+          schema: { type: string }
+      security: [{ bearerAuth: [] }]
       responses:
-        "200":
-          description: Batasan tarif pengguna berhasil diambil
-
-  /api/v1/todo/users:
-    get:
-      tags: [gateway]
-      summary: Mengonsumsi API Proxy
-      description: Endpoint ini berfungsi sebagai proxy untuk mengonsumsi API eksternal.
-      responses:
-        "200":
-          description: Respons dari API proxy
-
-  /gateway/services/{serviceId}/permissions:
-    post:
-      tags: [permissions]
-      summary: Memberikan Perizinan
-      description: Memberikan perizinan akses ke layanan untuk pengguna tertentu.
-      parameters:
-        - name: serviceId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID unik dari layanan
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GrantPermissionRequest"
-      responses:
-        "200":
-          description: Perizinan berhasil diberikan
-
-  /gateway/services/{serviceId}/permissions/{userId}:
-    delete:
-      tags: [permissions]
-      summary: Menghapus Perizinan
-      description: Menghapus perizinan akses ke layanan untuk pengguna tertentu.
-      parameters:
-        - name: serviceId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID unik dari layanan
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID unik dari pengguna
-      responses:
-        "200":
-          description: Perizinan berhasil dihapus
-
-components:
-  schemas:
-    LoginRequest:
-      type: object
-      required: [username, password, tenant]
-      properties:
-        username:
-          type: string
-          example: alam
-        password:
-          type: string
-          example: alam
-        tenant:
-          type: string
-          example: default
-
-    RegisterRequest:
-      type: object
-      required: [username, password, role, tenant]
-      properties:
-        username:
-          type: string
-          example: alam
-        password:
-          type: string
-          example: alam
-        role:
-          type: string
-          example: admin
-        tenant:
-          type: string
-          example: default
-
-    UpdateRoleRequest:
-      type: object
-      required: [userId, role]
-      properties:
-        userId:
-          type: integer
-          example: 2
-        role:
-          type: string
-          example: admin
-
-    AddServiceRequest:
-      type: object
-      required: [version, name, target]
-      properties:
-        version:
-          type: string
-          example: v1
-        name:
-          type: string
-          example: todo
-        target:
-          type: string
-          example: https://688eeca4f21ab1769f87bc60.mockapi.io/todo
-
-    UpdateRateLimitRequest:
-      type: object
-      required: [rate_limit]
-      properties:
-        rate_limit:
-          type: integer
-          example: 100
-
-    UpdateUserRateLimitRequest:
-      type: object
-      required: [rate_limit]
-      properties:
-        rate_limit:
-          type: integer
-          example: 1000
-
-    GrantPermissionRequest:
-      type: object
-      required: [user_id]
-      properties:
-        user_id:
-          type: integer
-          example: 2
+        "200": { description: Proxied response }
+        "404": { description: Service not found }
+        "500": { description: Proxy error }

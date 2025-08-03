@@ -3,6 +3,7 @@ info:
   title: Multi-Tenant Gateway API
   version: 1.0.0
   description: API untuk autentikasi, manajemen tenant, service gateway, dan proxy antar layanan.
+
 servers:
   - url: http://localhost:3000
     description: Local development server
@@ -19,7 +20,15 @@ tags:
 
 components:
   securitySchemes:
-    bearerAuth:
+    superadminToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    adminToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    userToken:
       type: http
       scheme: bearer
       bearerFormat: JWT
@@ -58,29 +67,24 @@ paths:
                 properties:
                   token: { type: string }
         "400":
-          {
-            description: Bad request,
-            content:
-              {
-                application/json:
-                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
-              },
-          }
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
-          {
-            description: Unauthorized,
-            content:
-              {
-                application/json:
-                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
-              },
-          }
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /auth/register:
     post:
       tags: [Auth]
       summary: Registrasi user baru (oleh superadmin)
-      security: [{ bearerAuth: [] }]
+      security:
+        - superadminToken: []
       requestBody:
         required: true
         content:
@@ -95,29 +99,24 @@ paths:
       responses:
         "200": { description: User registered }
         "403":
-          {
-            description: Forbidden,
-            content:
-              {
-                application/json:
-                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
-              },
-          }
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
-          {
-            description: Conflict,
-            content:
-              {
-                application/json:
-                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
-              },
-          }
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /admin/tenants:
     get:
       tags: [Admin]
       summary: Lihat semua tenant
-      security: [{ bearerAuth: [] }]
+      security:
+        - superadminToken: []
       responses:
         "200":
           description: OK
@@ -138,7 +137,8 @@ paths:
     get:
       tags: [Admin]
       summary: Lihat user tenant
-      security: [{ bearerAuth: [] }]
+      security:
+        - superadminToken: []
       parameters:
         - in: path
           name: tenantId
@@ -165,7 +165,8 @@ paths:
     post:
       tags: [Admin]
       summary: Update role user tenant
-      security: [{ bearerAuth: [] }]
+      security:
+        - superadminToken: []
       parameters:
         - in: path
           name: tenantId
@@ -184,29 +185,26 @@ paths:
       responses:
         "200": { description: User role updated }
         "400":
-          {
-            description: Bad request,
-            content:
-              {
-                application/json:
-                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
-              },
-          }
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
-          {
-            description: Not found,
-            content:
-              {
-                application/json:
-                  { schema: { $ref: "#/components/schemas/ErrorResponse" } },
-              },
-          }
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /gateway/services:
     get:
       tags: [Gateway]
       summary: List semua services tenant
-      security: [{ bearerAuth: [] }]
+      security:
+        - superadminToken: []
+        - adminToken: []
+        - userToken: []
       responses:
         "200":
           description: OK
@@ -270,7 +268,10 @@ paths:
           name: any*
           required: false
           schema: { type: string }
-      security: [{ bearerAuth: [] }]
+      security:
+        - superadminToken: []
+        - adminToken: []
+        - userToken: []
       responses:
         "200": { description: Proxied response }
         "404": { description: Service not found }

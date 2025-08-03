@@ -17,7 +17,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"admin2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"tenant\": \"default\"\r\n}",
+							"raw": "{\r\n    \"username\": \"admin_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"tenant\": \"BRI\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -54,7 +54,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"admin2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"user\",\r\n    \"tenant\": \"default\"\r\n}",
+							"raw": "{\r\n    \"username\": \"admin_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"user\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -160,14 +160,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/admin/users/1",
+							"raw": "{{baseURL}}/admin/users/2",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"admin",
 								"users",
-								"1"
+								"2"
 							]
 						}
 					},
@@ -181,7 +181,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{adminToken}}",
+									"value": "{{superadminToken}}",
 									"type": "string"
 								}
 							]
@@ -190,7 +190,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"userId\": 2,\r\n    \"role\": \"admin\"\r\n}",
+							"raw": "{\r\n    \"userId\": 3,\r\n    \"role\": \"admin\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -198,14 +198,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseURL}}/admin/users/1/role",
+							"raw": "{{baseURL}}/admin/users/2/role",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"admin",
 								"users",
-								"1",
+								"2",
 								"role"
 							]
 						}
@@ -299,7 +299,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"rate_limit\": 100\r\n}",
+							"raw": "{\r\n    \"rate_limit\": 1000\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -338,7 +338,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"rate_limit\": 5\r\n}",
+							"raw": "{\r\n    \"rate_limit\": 0\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"

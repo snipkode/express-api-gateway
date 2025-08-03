@@ -48,13 +48,18 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', registerLimiter, authenticate, async (req, res) => {
   try {
-    let { username, password, role } = req.body;
+    let { username, password, role, tenant_id } = req.body;
+
+     if (!username || !password || !role) {
+      return res.status(400).json({ error: 'Username, password, and role are required' });
+    }
     
     // Input sanitization
     username = sanitizeInput(username);
     role = sanitizeInput(role);
+    tenant_id = sanitizeInput(tenant_id);
     // Note: password tidak di-sanitize untuk menjaga karakter khusus
-    
+  
     // Validation
     const usernameErrors = validateUsername(username);
     const passwordErrors = validatePassword(password);
@@ -74,7 +79,7 @@ router.post('/register', registerLimiter, authenticate, async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: Only superadmin can register users' });
     }
     
-    const tenantId = req.user.tenant_id;
+    const tenantId = tenant_id ? tenant_id : req.user.tenant_id;
     
     // Sanitize untuk database query
     const cleanUsername = username.trim().toLowerCase();

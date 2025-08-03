@@ -51,4 +51,48 @@ router.put('/services/:id/rate-limit', authenticate, (req, res) => {
   res.json({ message: 'Rate limit updated' });
 });
 
+// User override rate_limit untuk service tertentu
+router.put('/services/:id/user-rate-limit', authenticate, (req, res) => {
+  const { id } = req.params; // service_id
+  const { rate_limit } = req.body;
+  const { id: user_id, tenant_id, role } = req.user;
+
+  if (rate_limit == null || typeof rate_limit !== 'number' || rate_limit <= 0) {
+    return res.status(400).json({ error: 'Invalid or missing rate_limit' });
+  }
+
+  // Pastikan service ada & milik tenant yang sama
+  const service = db.prepare(`SELECT * FROM services WHERE id = ? AND tenant_id = ?`).get(id, tenant_id);
+  if (!service) return res.status(404).json({ error: 'Service not found' });
+
+  // Cek apakah user punya akses ke service tersebut
+  const permission = db.prepare(`
+    SELECT 1 FROM permissions 
+    WHERE user_id = ? AND service_id = ? AND tenant_id = ?
+  `).get(user_id, id, tenant_id);
+
+  if (!permission) {
+    return res.status(403).json({ error: 'You do not have permission to this service' });
+  }
+
+  // Simpan atau update rate_limit untuk user+service
+  const existing = db.prepare(`
+    SELECT 1 FROM user_rate_limits WHERE user_id = ? AND service_id = ?
+  `).get(user_id, id);
+
+  if (existing) {
+    db.prepare(`
+      UPDATE user_rate_limits SET rate_limit = ? WHERE user_id = ? AND service_id = ?
+    `).run(rate_limit, user_id, id);
+  } else {
+    db.prepare(`
+      INSERT INTO user_rate_limits (user_id, service_id, tenant_id, rate_limit)
+      VALUES (?, ?, ?, ?)
+    `).run(user_id, id, tenant_id, rate_limit);
+  }
+
+  res.json({ message: 'Your rate limit override is updated' });
+});
+
+
 module.exports = router;

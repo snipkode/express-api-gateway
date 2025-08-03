@@ -3,6 +3,7 @@ const axios = require('axios');
 const router = express.Router();
 const db = require('../db');
 const rateLimit = require('express-rate-limit');
+const dynamicRateLimiter = require('../dynamicRateLimiter');
 
 // Gunakan object untuk menyimpan instance rate limiter yang sudah dibuat.
 // Ini mencegah pembuatan rate limiter baru di setiap request.
@@ -29,33 +30,6 @@ const findServiceMiddleware = async (req, res, next) => {
   next();
 };
 
-/**
- * Middleware untuk menerapkan rate limiter dinamis per service.
- * Menggunakan cache (rateLimiters object) untuk menyimpan instance limiter.
- */
-const dynamicRateLimiterMiddleware = (req, res, next) => {
-  const serviceId = `${req.user.tenant_id}-${req.service.id}`;
-  const maxRequests = req.service.rate_limit || 100;
-
-  // Cek apakah rate limiter sudah ada di cache.
-  if (!rateLimiters[serviceId]) {
-    console.log(`Creating new rate limiter for service: ${serviceId} with max: ${maxRequests}`);
-    rateLimiters[serviceId] = rateLimit({
-      windowMs: 60 * 1000, // 1 minute
-      max: maxRequests,
-      handler: (req, res) => {
-        res.status(429).json({ error: 'Too many requests for this service' });
-      },
-      keyGenerator: (req) => {
-        // Menggunakan IP user untuk rate limiting, pastikan ini akurat
-        return req.ip;
-      }
-    });
-  }
-
-  // Jalankan middleware rate limiter dari cache.
-  rateLimiters[serviceId](req, res, next);
-};
 
 /**
  * Middleware untuk mem-proxy request ke target service.
@@ -111,7 +85,7 @@ const proxyMiddleware = async (req, res, next) => {
 router.use(
   '/:version/:serviceName',
   findServiceMiddleware,
-  dynamicRateLimiterMiddleware,
+  dynamicRateLimiter,
   proxyMiddleware
 );
 

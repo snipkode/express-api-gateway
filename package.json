@@ -15,23 +15,7 @@
     "jsonwebtoken": "^9.0.0"
   },
   "devDependencies": {
-<<<<<<< HEAD
-    "dotenv": "^17.2.1"
-  },
-  "nodemonConfig": {
-    "ignore": [
-      "node_modules/",
-      "databases/",
-      "logs/",
-      "public/",
-      "*.test.js",
-      ".git/",
-      "tmp/",
-      "README.md"
-    ]
-=======
     "dotenv": "^17.2.1",
     "nodemon": "^3.1.10"
->>>>>>> 6c127b5 (Add Nodemon)
   }
 }

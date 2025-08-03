@@ -63,7 +63,7 @@ router.use('/api/:version/:serviceName', authenticateToken, async (req, res, nex
 });
 
 // GET /docs/:version/:serviceName/swagger.json
-router.get('/docs/:version/:serviceName/swagger.json', authenticateTokenToken, (req, res) => {
+router.get('/docs/:version/:serviceName/swagger.json', authenticateToken, (req, res) => {
   const { version, serviceName } = req.params;
   const tenantId = req.user.tenant_id;
 

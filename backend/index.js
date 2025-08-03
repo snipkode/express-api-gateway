@@ -50,5 +50,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   const now = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-  console.log(`🚀 [${now}] API Gateway is running on port ${PORT}`);
+  console.log(`🚀 == [${now}] API Gateway is running on port ${PORT} == 🚀`);
 });

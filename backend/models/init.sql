@@ -55,18 +55,26 @@ CREATE TABLE IF NOT EXISTS services (
 );
 
 
--- ========================
+-- =====================
 -- TABEL PERMISSIONS
--- ========================
+-- =====================
+-- Menyimpan hak akses user terhadap service tertentu dalam konteks tenant.
+
 CREATE TABLE IF NOT EXISTS permissions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,                    -- ID unik permission
-  user_id INTEGER NOT NULL,                                -- ID user
-  service_id INTEGER NOT NULL,                             -- ID service
-  access_level TEXT DEFAULT 'read',                        -- Hak akses (read/write/full)
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Waktu dibuat
-  updated_at DATETIME,                                     -- Waktu terakhir diperbarui
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,         -- Hapus jika user dihapus
-  FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE    -- Hapus jika service dihapus
+  id INTEGER PRIMARY KEY AUTOINCREMENT,                     -- ID unik permission
+  user_id INTEGER NOT NULL,                                 -- ID user yang diberikan permission
+  service_id INTEGER NOT NULL,                              -- ID service yang diakses
+  tenant_id INTEGER NOT NULL,                               -- ID tenant (multi-tenant support)
+  access_level TEXT DEFAULT 'read',                         -- Hak akses: read / write / full
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Waktu permission dibuat
+  updated_at DATETIME,                                      -- Waktu terakhir permission diperbarui
+
+  -- Relasi ke tabel users, services, dan tenants
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,         -- Hapus jika user terkait dihapus
+  FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,   -- Hapus jika service terkait dihapus
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,     -- Hapus jika tenant terkait dihapus
+  UNIQUE(user_id, service_id, tenant_id) 
+
 );
 
 -- ========================
@@ -83,6 +91,45 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,       -- User bisa jadi null jika dihapus
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE SET NULL    -- Tenant juga bisa null
 );
+
+
+-- ============================
+-- TABEL USER_RATE_LIMITS
+-- ============================
+-- Menyimpan data kuota request spesifik untuk tiap user terhadap service tertentu,
+-- termasuk kemampuan override rate_limit bawaan service.
+-- Mendukung sistem multi-tenant melalui kolom tenant_id.
+
+CREATE TABLE IF NOT EXISTS user_rate_limits (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,                     -- ID unik untuk setiap entri
+  user_id INTEGER NOT NULL,                                 -- ID user yang menggunakan service
+  service_id INTEGER NOT NULL,                              -- ID service yang digunakan
+  tenant_id INTEGER NOT NULL,                               -- ID tenant (multi-tenant support)
+  rate_limit INTEGER NOT NULL DEFAULT 0,                    -- Override batas maksimal request (opsional)
+  remaining INTEGER NOT NULL DEFAULT 0,                     -- Sisa kuota request saat ini
+  last_reset DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Waktu terakhir reset rate limit
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Waktu entri dibuat
+  updated_at DATETIME,                                      -- Waktu entri terakhir diperbarui
+
+  -- Relasi terhadap tabel users dan services
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,       -- Hapus entri ini jika user terkait dihapus
+  FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE, -- Hapus entri ini jika service terkait dihapus
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,   -- Hapus entri ini jika tenant terkait dihapus
+
+  UNIQUE(user_id, service_id, tenant_id)                              -- Kombinasi unik per user, service, dan tenant
+);
+
+
+-- Trigger: Perbarui updated_at saat baris diubah
+CREATE TRIGGER IF NOT EXISTS trg_user_rate_limits_updated_at
+AFTER UPDATE ON user_rate_limits
+FOR EACH ROW
+BEGIN
+  UPDATE user_rate_limits
+  SET updated_at = CURRENT_TIMESTAMP
+  WHERE id = OLD.id;
+END;
+
 
 -- ========================
 -- TRIGGER UNTUK UPDATE updated_at OTOMATIS

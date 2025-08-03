@@ -36,20 +36,24 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ========================
--- TABEL SERVICES
+-- TABEL SERVICES (revisi tanpa merusak API)
 -- ========================
 CREATE TABLE IF NOT EXISTS services (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,                    -- ID unik service
-  name TEXT NOT NULL,                                      -- Nama service (slug pendek)
-  target_url TEXT NOT NULL,                                -- Alamat asli backend yang diproxy
-  tenant_id INTEGER NOT NULL,                              -- Relasi ke tenant
-  description TEXT,                                        -- Deskripsi singkat service
-  status TEXT DEFAULT 'active',                            -- Status service
-  rate_limit INTEGER,                                      -- Batas rate limit per user
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Waktu dibuat
-  updated_at DATETIME,                                     -- Waktu terakhir diperbarui
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE  -- Hapus jika tenant-nya dihapus
+  id INTEGER PRIMARY KEY AUTOINCREMENT,                     -- ID unik service
+  name TEXT NOT NULL,                                       -- Nama service (slug pendek)
+  target TEXT NOT NULL,                                     -- Alamat asli backend yang diproxy
+  version TEXT NOT NULL,                                    -- Versi service (v1, v2, dll)
+  tenant_id INTEGER NOT NULL,                               -- ID tenant pemilik service
+  description TEXT,                                         -- Deskripsi singkat (opsional)
+  status TEXT DEFAULT 'active',                             -- Status aktif/nonaktif
+  rate_limit INTEGER DEFAULT 100,                           -- Rate limit default per user
+  swagger TEXT,                                             -- File dokumentasi Swagger (opsional)
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Timestamp saat dibuat
+  updated_at DATETIME,                                      -- Timestamp saat diperbarui
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, -- Hapus semua servicenya jika tenant dihapus
+  UNIQUE(version, name, tenant_id)                          -- Unik berdasarkan versi, nama, dan tenant
 );
+
 
 -- ========================
 -- TABEL PERMISSIONS

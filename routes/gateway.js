@@ -51,6 +51,74 @@ router.put('/services/:id/rate-limit', authenticate, (req, res) => {
   res.json({ message: 'Rate limit updated' });
 });
 
+// GET /gateway/services/:id/user-rate-limits
+// List semua user rate limit override untuk service tertentu (hanya admin/superadmin tenant)
+router.get('/services/:id/user-rate-limits', authenticate, (req, res) => {
+  const { id: service_id } = req.params;
+  const { role, tenant_id } = req.user;
+
+  if (!['superadmin', 'admin'].includes(role)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  // Ambil service
+  const service = db.prepare(`SELECT * FROM services WHERE id = ? AND tenant_id = ?`).get(service_id, tenant_id);
+  if (!service) return res.status(404).json({ error: 'Service not found' });
+
+  // Ambil semua override untuk service tsb (tenant yg sama)
+const overrides = db.prepare(`
+  SELECT u.username, url.user_id, url.rate_limit
+  FROM user_rate_limits url
+  JOIN users u ON url.user_id = u.id
+  WHERE url.service_id = ? AND url.tenant_id = ?
+`).all(service_id, tenant_id);
+
+  res.json({
+    service_id,
+    service_name: service.name,
+    version: service.version,
+    overrides
+  });
+});
+
+// GET /gateway/services/:id/user-rate-limits/:userId
+// Detail rate limit override user untuk service (admin/superadmin/atau user yang punya permission)
+router.get('/services/:id/user-rate-limits/:userId', authenticate, (req, res) => {
+  const { id: service_id, userId } = req.params;
+  const { id: user_id, role, tenant_id } = req.user;
+
+  // Ambil service dulu
+  const service = db.prepare(`SELECT * FROM services WHERE id = ? AND tenant_id = ?`).get(service_id, tenant_id);
+  if (!service) return res.status(404).json({ error: 'Service not found' });
+
+  // Cek akses: admin/superadmin boleh, atau user yang dimaksud sama dengan user login, atau user login punya permission
+  const isAdmin = ['superadmin', 'admin'].includes(role);
+  if (!isAdmin && user_id != userId) {
+    // cek permission user login untuk service
+    const permission = db.prepare(`
+      SELECT 1 FROM permissions WHERE user_id = ? AND service_id = ? AND tenant_id = ?
+    `).get(user_id, service_id, tenant_id);
+    if (!permission) return res.status(403).json({ error: 'Access denied' });
+  }
+
+  // Ambil override
+  const override = db.prepare(`
+    SELECT rate_limit FROM user_rate_limits WHERE user_id = ? AND service_id = ? AND tenant_id = ?
+  `).get(userId, service_id, tenant_id);
+
+  res.json({
+    service_id,
+    service_name: service.name,
+    version: service.version,
+    target: service.target,
+    user_id: Number(userId),
+    override_rate_limit: override ? override.rate_limit : null,
+    message: override ? 'Override found' : 'No override, using default',
+  });
+});
+
+
+
 // User override rate_limit untuk service tertentu
 router.put('/services/:id/user-rate-limit', authenticate, (req, res) => {
   const { id: service_id } = req.params;

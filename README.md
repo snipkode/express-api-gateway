@@ -179,4 +179,9 @@ Penjelasan:
 * `{{adminToken}}`: Token milik admin
 * `{{userToken}}`: Token milik user biasa (default belum aktif)
 
+## Docker Command
+```shell
+docker run -d -p 3000:3000 snipkode/api-gateway:stable-v1.0
+```
+
 ---

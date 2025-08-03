@@ -7,11 +7,13 @@ const authenticateToken = require('./middlewares/auth');
 const swaggerUi         = require('swagger-ui-express');
 const fs                = require('fs');
 const yaml              = require('js-yaml');
+const cors              = require('cors');
 const swaggerDocument   = yaml.load(fs.readFileSync('./docs/swagger-output.yaml', 'utf8'));
 
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 app.use('/api/docs/tenants', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 

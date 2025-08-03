@@ -2,13 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const authenticate = require('../middlewares/auth');
-
-function superadminOnly(req, res, next) {
-  if (req.user.role !== 'superadmin') {
-    return res.status(403).json({ error: 'Forbidden, superadmin only' });
-  }
-  next();
-}
+const { superadminOnly } = require('../middlewares/signUpValidation');
 
 // POST /admin/tenants - tambah tenant baru (superadmin only)
 router.post('/tenants', authenticate, superadminOnly, (req, res) => {

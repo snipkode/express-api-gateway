@@ -124,7 +124,7 @@ const validateRole = (role) => {
     errors.push('Role is required and must be a string');
     return errors;
   }
-  
+
   // Trim dan lowercase
   role = role.trim().toLowerCase();
   
@@ -161,6 +161,13 @@ const validateRequestBody = (req, res, next) => {
   next();
 };
 
+function superadminOnly(req, res, next) {
+  if (req.user.role !== 'superadmin') {
+    return res.status(403).json({ error: 'Forbidden, superadmin only' });
+  }
+  next();
+}
+
 // Export untuk digunakan di routes lain
 module.exports = {
   registerLimiter,
@@ -169,5 +176,6 @@ module.exports = {
   validateRole,
   sanitizeInput,
   validateRequestBody,
-  ALLOWED_ROLES
+  ALLOWED_ROLES,
+  superadminOnly
 };

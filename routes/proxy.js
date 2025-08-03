@@ -5,6 +5,7 @@ const db = require('../db');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const authenticateToken = require('../middlewares/auth');
+const dynamicRateLimiter = require('../dynamicRateLimiter');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
@@ -21,7 +22,7 @@ function createRateLimiter(max) {
 }
 
 // Proxy all routes: /api/:version/:serviceName/*
-router.use('/api/:version/:serviceName', authenticateToken, async (req, res, next) => {
+router.use('/api/:version/:serviceName', authenticateToken, dynamicRateLimiter, async (req, res, next) => {
   const { version, serviceName } = req.params;
   const tenantId = req.user.tenant_id;
 

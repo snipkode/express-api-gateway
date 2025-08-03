@@ -13,9 +13,6 @@ app.use(express.json());
 // Routes tanpa autentikasi (misal register dan login)
 app.use('/auth', authRoutes);
 
-// Middleware rate limiter dinamis sebelum akses service
-app.use(dynamicRateLimiter);
-
 // Route untuk admin superadmin
 app.use('/admin', adminRoutes);
 

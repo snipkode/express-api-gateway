@@ -1,0 +1,568 @@
+{
+	"info": {
+		"_postman_id": "dce86d8b-d8e0-403b-af01-50585a6dcde0",
+		"name": "Express API Gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38471738",
+		"_collection_link": "https://interstellar-space-604055.postman.co/workspace/JAMKRINDO~5153f25a-f851-489e-9495-0fdb0a9b5452/collection/38471738-dce86d8b-d8e0-403b-af01-50585a6dcde0?action=share&source=collection_link&creator=38471738"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "AUTH Superadmin Tenants",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"alam\",\r\n    \"password\": \"alam\",\r\n    \"tenant\": \"default\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register User Tenants",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"alam\",\r\n    \"password\": \"alam\",\r\n    \"role\": \"admin\",\r\n    \"tenant\": \"default\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/register",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "Get Tenant LIst",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/admin/tenants",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"tenants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Users By Tenant",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/admin/users/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ubah Role User Tenants",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": 2,\r\n    \"role\": \"admin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/admin/users/1/role",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								"1",
+								"role"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "gateway",
+			"item": [
+				{
+					"name": "Get Services Users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/gateway/services",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Service",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"version\": \"v1\", \r\n    \"name\": \"todo\", \r\n    \"target\": \"https://688eeca4f21ab1769f87bc60.mockapi.io/todo\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/gateway/services",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Rate-Limit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"rate_limit\": 100\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/gateway/services/1/rate-limit",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services",
+								"1",
+								"rate-limit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Rate-Limit User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"rate_limit\": 1000\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/gateway/services/1/user-rate-limit",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services",
+								"1",
+								"user-rate-limit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET LIST Rate-Limit Users",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"rate_limit\": 1000\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/gateway/services/1/user-rate-limits",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services",
+								"1",
+								"user-rate-limits"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Rate-Limit By User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"rate_limit\": 1000\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/gateway/services/1/user-rate-limits/2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services",
+								"1",
+								"user-rate-limits",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Proxy",
+			"item": [
+				{
+					"name": "Consume API",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v1/todo/users",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								"users"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "permissions",
+			"item": [
+				{
+					"name": "Grant Permissions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/gateway/services/2/permissions",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services",
+								"2",
+								"permissions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Permissions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/gateway/services/1/permissions/2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services",
+								"1",
+								"permissions",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "https://3000-snipkode-expressapigate-n5odvkjdy6m.ws-us120.gitpod.io",
+			"type": "string"
+		},
+		{
+			"key": "superadminToken",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJzdXBlcmFkbWluIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0ZW5hbnRfaWQiOjEsImlhdCI6MTc1NDE4NTYwMSwiZXhwIjoxNzU0MjI4ODAxfQ.YtTpNcC0ziD08yQ4st4fdd_jKv1zy4X_OW97kx-s0Ao",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJhbGFtIiwicm9sZSI6ImFkbWluIiwidGVuYW50X2lkIjoxLCJpYXQiOjE3NTQxOTI1NTQsImV4cCI6MTc1NDIzNTc1NH0.mNkGaxTeLmXYr6m1_qonZNV1Hm4rmjB_Uh6F2hVCqFk",
+			"type": "string"
+		},
+		{
+			"key": "userToken",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   password TEXT NOT NULL,
   role TEXT NOT NULL, -- 'superadmin', 'admin', 'user'
   tenant_id INTEGER NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (tenant_id) REFERENCES tenants(id),
   UNIQUE(username, tenant_id)
 );
@@ -50,3 +51,4 @@ CREATE TABLE IF NOT EXISTS user_rate_limits (
   FOREIGN KEY (service_id) REFERENCES services(id),
   FOREIGN KEY (tenant_id) REFERENCES tenants(id)
 );
+

@@ -15,7 +15,8 @@
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.0",
     "postman-to-openapi": "^1.7.3",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "validator": "^13.15.15"
   },
   "devDependencies": {
     "dotenv": "^17.2.1",

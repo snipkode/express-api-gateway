@@ -45,9 +45,9 @@ paths:
               type: object
               required: [username, password, tenant]
               properties:
-                username: { type: string, example: johndoe }
-                password: { type: string, example: secret123 }
-                tenant: { type: string, example: Tenant A }
+                username: { type: string, example: superadmin }
+                password: { type: string, example: supersecretpassword }
+                tenant: { type: string, example: default }
       responses:
         "200":
           description: Login sukses
@@ -89,8 +89,8 @@ paths:
               type: object
               required: [username, password, role]
               properties:
-                username: { type: string, example: janedoe }
-                password: { type: string, example: secret456 }
+                username: { type: string, example: admin }
+                password: { type: string, example: admin }
                 role: { type: string, example: admin }
       responses:
         "200": { description: User registered }

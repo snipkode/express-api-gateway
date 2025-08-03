@@ -38,7 +38,7 @@ router.post('/login', async (req, res) => {
       tenant_id: user.tenant_id,
     }, JWT_SECRET, { expiresIn: '12h' });
 
-    res.json({ token });
+    res.json({ token, username: user.username, role: user.role, tenant: user.tenant_id });
 
   } catch (err) {
     console.error('Error during login:', err.message);

@@ -46,40 +46,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// POST /auth/register
-// hanya superadmin di tenant yang sama yang bisa register user baru
-// router.post('/register', authenticate, async (req, res) => {
-//   try {
-//     const { username, password, role } = req.body;
-//     if (!username || !password || !role) {
-//       return res.status(400).json({ error: 'Missing fields' });
-//     }
-
-//     // hanya superadmin bisa register user baru
-//     if (req.user.role !== 'superadmin') {
-//       return res.status(403).json({ error: 'Forbidden' });
-//     }
-
-//     const tenantId = req.user.tenant_id;
-
-//     // Cek user sudah ada atau belum di tenant
-//     const existingUser = db.prepare('SELECT * FROM users WHERE username = ? AND tenant_id = ?').get(username, tenantId);
-//     if (existingUser) {
-//       return res.status(409).json({ error: 'Username already exists' });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     db.prepare('INSERT INTO users (username, password, role, tenant_id) VALUES (?, ?, ?, ?)').run(username, hashedPassword, role, tenantId);
-
-//     res.json({ message: 'User registered' });
-
-//   } catch (err) {
-//     console.error('Error during registration:', err.message);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
-
 router.post('/register', registerLimiter, authenticate, async (req, res) => {
   try {
     let { username, password, role } = req.body;

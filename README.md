@@ -1,15 +1,18 @@
----
-
 # 📘 Dokumentasi Express API Gateway
+
 
 ## 📌 Base URL
 
-```
+```shell
 {{baseURL}} = http://localhost:3000
 ```
 
----
 
+## 📌 DOCS SWAGGER URL
+
+```shell
+http://localhost:3000/api/docs/tenants
+```
 ## 🔐 AUTENTIKASI
 
 ### 1. Login Sebagai Superadmin Tenant

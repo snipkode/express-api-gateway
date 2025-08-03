@@ -10,22 +10,6 @@ function superadminOnly(req, res, next) {
   next();
 }
 
-// PATCH /admin/tenants/:id/status - ubah status tenant (aktif/nonaktif)
-router.patch('/tenants/:id/status', authenticate, superadminOnly, (req, res) => {
-  const tenantId = req.params.id;
-  const { status } = req.body;
-
-  if (!['active', 'disabled'].includes(status)) {
-    return res.status(400).json({ error: 'Status must be either "active" or "disabled"' });
-  }
-
-  const tenant = db.prepare(`SELECT * FROM tenants WHERE id = ?`).get(tenantId);
-  if (!tenant) return res.status(404).json({ error: 'Tenant not found' });
-
-  db.prepare(`UPDATE tenants SET status = ? WHERE id = ?`).run(status, tenantId);
-  res.json({ message: `Tenant status updated to ${status}` });
-});
-
 // POST /admin/tenants - tambah tenant baru (superadmin only)
 router.post('/tenants', authenticate, superadminOnly, (req, res) => {
   const { name } = req.body;
@@ -77,5 +61,22 @@ router.post('/users/:tenantId/role', authenticate, superadminOnly, (req, res) =>
   db.prepare(`UPDATE users SET role = ? WHERE id = ?`).run(role, userId);
   res.json({ message: 'User role updated' });
 });
+
+// PATCH /admin/tenants/:id/status - ubah status tenant (aktif/nonaktif)
+router.patch('/tenants/:id/status', authenticate, superadminOnly, (req, res) => {
+  const tenantId = req.params.id;
+  const { status } = req.body;
+
+  if (!['active', 'disabled'].includes(status)) {
+    return res.status(400).json({ error: 'Status must be either "active" or "disabled"' });
+  }
+
+  const tenant = db.prepare(`SELECT * FROM tenants WHERE id = ?`).get(tenantId);
+  if (!tenant) return res.status(404).json({ error: 'Tenant not found' });
+
+  db.prepare(`UPDATE tenants SET status = ? WHERE id = ?`).run(status, tenantId);
+  res.json({ message: `Tenant status updated to ${status}` });
+});
+
 
 module.exports = router;

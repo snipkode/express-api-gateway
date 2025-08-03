@@ -1,68 +1,117 @@
--- Tabel tenant
+PRAGMA foreign_keys = ON;  -- Aktifkan dukungan foreign key di SQLite
+
+-- ========================
+-- TABEL TENANTS
+-- ========================
 CREATE TABLE IF NOT EXISTS tenants (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT UNIQUE NOT NULL,                    -- Slug unik tenant (wajib)
-  display_name TEXT,                            -- Nama tampilan
-  owner_email TEXT,                             -- Email admin utama tenant
-  status TEXT DEFAULT 'active',                 -- 'active', 'inactive', 'suspended'
-
-  subscription_plan TEXT DEFAULT 'free',        -- 'free', 'basic', 'pro', etc.
-  subscription_expiry DATETIME,                 -- Tanggal akhir subscription
-
-  max_users INTEGER,                            -- Batasan user dalam tenant
-  custom_domain TEXT,                           -- Domain khusus tenant
-  logo_url TEXT,                                -- Logo branding tenant
-  settings_json TEXT,                           -- Setting khusus dalam format JSON
-
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME
+  id INTEGER PRIMARY KEY AUTOINCREMENT,                    -- ID unik tenant
+  name TEXT UNIQUE NOT NULL,                               -- Nama unik tenant (slug)
+  display_name TEXT,                                       -- Nama tampilan tenant
+  owner_email TEXT,                                        -- Email pemilik/admin tenant
+  status TEXT DEFAULT 'active',                            -- Status tenant ('active', 'inactive')
+  subscription_plan TEXT DEFAULT 'free',                   -- Paket langganan (free, pro, dll)
+  subscription_expiry DATETIME,                            -- Masa berlaku langganan
+  max_users INTEGER,                                       -- Batas maksimal user di tenant ini
+  custom_domain TEXT,                                      -- Domain kustom milik tenant (opsional)
+  logo_url TEXT,                                           -- URL logo atau branding tenant
+  settings_json TEXT,                                      -- Konfigurasi tambahan dalam format JSON
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Waktu tenant dibuat
+  updated_at DATETIME                                      -- Waktu tenant terakhir diperbarui
 );
 
--- Tabel pengguna
+-- ========================
+-- TABEL USERS
+-- ========================
 CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL,
-  password TEXT NOT NULL,
-  role TEXT NOT NULL, -- 'superadmin', 'admin', 'user'
-  tenant_id INTEGER NOT NULL,
-  created_at TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id),
-  UNIQUE(username, tenant_id)
+  id INTEGER PRIMARY KEY AUTOINCREMENT,                    -- ID unik user
+  username TEXT NOT NULL,                                  -- Username login
+  password TEXT NOT NULL,                                  -- Password (hash bcrypt)
+  role TEXT NOT NULL,                                      -- Peran user ('superadmin', 'admin', 'user')
+  tenant_id INTEGER NOT NULL,                              -- Relasi ke tenant asal
+  status TEXT DEFAULT 'active',                            -- Status user ('active', 'inactive')
+  last_login DATETIME,                                     -- Terakhir kali user login
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Waktu user dibuat
+  updated_at DATETIME,                                     -- Waktu user terakhir diperbarui
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE  -- Hapus user jika tenant-nya dihapus
 );
 
--- Tabel layanan (API yang didaftarkan)
+-- ========================
+-- TABEL SERVICES
+-- ========================
 CREATE TABLE IF NOT EXISTS services (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  version TEXT NOT NULL,
-  name TEXT NOT NULL,
-  target TEXT NOT NULL,
-  swagger TEXT,
-  rate_limit INTEGER DEFAULT 100,
-  tenant_id INTEGER NOT NULL,
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id),
-  UNIQUE(version, name, tenant_id)
+  id INTEGER PRIMARY KEY AUTOINCREMENT,                    -- ID unik service
+  name TEXT NOT NULL,                                      -- Nama service (slug pendek)
+  target_url TEXT NOT NULL,                                -- Alamat asli backend yang diproxy
+  tenant_id INTEGER NOT NULL,                              -- Relasi ke tenant
+  description TEXT,                                        -- Deskripsi singkat service
+  status TEXT DEFAULT 'active',                            -- Status service
+  rate_limit INTEGER,                                      -- Batas rate limit per user
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Waktu dibuat
+  updated_at DATETIME,                                     -- Waktu terakhir diperbarui
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE  -- Hapus jika tenant-nya dihapus
 );
 
--- Hak akses user ke service
+-- ========================
+-- TABEL PERMISSIONS
+-- ========================
 CREATE TABLE IF NOT EXISTS permissions (
-  user_id INTEGER,
-  service_id INTEGER,
-  tenant_id INTEGER NOT NULL,
-  PRIMARY KEY (user_id, service_id),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (service_id) REFERENCES services(id),
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+  id INTEGER PRIMARY KEY AUTOINCREMENT,                    -- ID unik permission
+  user_id INTEGER NOT NULL,                                -- ID user
+  service_id INTEGER NOT NULL,                             -- ID service
+  access_level TEXT DEFAULT 'read',                        -- Hak akses (read/write/full)
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Waktu dibuat
+  updated_at DATETIME,                                     -- Waktu terakhir diperbarui
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,         -- Hapus jika user dihapus
+  FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE    -- Hapus jika service dihapus
 );
 
--- Rate limit per user per service (override dari default service)
-CREATE TABLE IF NOT EXISTS user_rate_limits (
-  user_id INTEGER,
-  service_id INTEGER,
-  rate_limit INTEGER,
-  tenant_id INTEGER NOT NULL,
-  PRIMARY KEY (user_id, service_id),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (service_id) REFERENCES services(id),
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+-- ========================
+-- TABEL AUDIT LOGS
+-- ========================
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,                    -- ID log
+  user_id INTEGER,                                         -- User yang melakukan aksi
+  tenant_id INTEGER,                                       -- Tenant terkait
+  action TEXT NOT NULL,                                    -- Jenis aksi (login, update, delete, dll)
+  resource TEXT,                                           -- Objek yang dipengaruhi (contoh: 'users', 'services')
+  description TEXT,                                        -- Deskripsi singkat log
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Waktu kejadian log
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,       -- User bisa jadi null jika dihapus
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE SET NULL    -- Tenant juga bisa null
 );
 
+-- ========================
+-- TRIGGER UNTUK UPDATE updated_at OTOMATIS
+-- ========================
+
+-- Trigger: saat baris tenant diubah, updated_at diperbarui otomatis
+CREATE TRIGGER IF NOT EXISTS trg_tenants_updated_at
+AFTER UPDATE ON tenants
+FOR EACH ROW
+BEGIN
+  UPDATE tenants SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+END;
+
+-- Trigger: saat baris user diubah, updated_at diperbarui otomatis
+CREATE TRIGGER IF NOT EXISTS trg_users_updated_at
+AFTER UPDATE ON users
+FOR EACH ROW
+BEGIN
+  UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+END;
+
+-- Trigger: saat baris service diubah, updated_at diperbarui otomatis
+CREATE TRIGGER IF NOT EXISTS trg_services_updated_at
+AFTER UPDATE ON services
+FOR EACH ROW
+BEGIN
+  UPDATE services SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+END;
+
+-- Trigger: saat baris permission diubah, updated_at diperbarui otomatis
+CREATE TRIGGER IF NOT EXISTS trg_permissions_updated_at
+AFTER UPDATE ON permissions
+FOR EACH ROW
+BEGIN
+  UPDATE permissions SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+END;

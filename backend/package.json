@@ -4,7 +4,10 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:dev": "nodemon --legacy-watch index.js"
+    "start:dev": "nodemon --legacy-watch index.js",
+    "docker:build": "docker build -t snipkode/api-gateway:latest .",
+    "docker:image:push": "docker push snipkode/api-gateway:latest",
+    "docker:publish": "npm run docker:build && npm run docker:image:push"
   },
   "dependencies": {
     "axios": "^1.5.0",

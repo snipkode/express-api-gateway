@@ -8,16 +8,47 @@
 	},
 	"item": [
 		{
-			"name": "auth",
+			"name": "public",
 			"item": [
 				{
-					"name": "Common Sign In",
+					"name": "Consume API",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v1/todo_bri/users/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo_bri",
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"admin_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"tenant\": \"BRI\"\r\n}",
+							"raw": "{\r\n    \"username\": \"user01_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"tenant\": \"BRI\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -32,6 +63,79 @@
 							"path": [
 								"auth",
 								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "superadmin",
+			"item": [
+				{
+					"name": "Ubah Role User Tenants",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{superadminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": 3,\r\n    \"role\": \"admin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/admin/users/2/role",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								"2",
+								"role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Users By Tenants",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{superadminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/admin/users/2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								"2"
 							]
 						}
 					},
@@ -54,7 +158,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"admin_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"user\"\r\n}",
+							"raw": "{\r\n    \"username\": \"user01_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"user\",\r\n    \"tenant_id\": 2\r\n\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -73,12 +177,7 @@
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "admin",
-			"item": [
+				},
 				{
 					"name": "Get Tenant LIst",
 					"request": {
@@ -143,107 +242,86 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Get Users By Tenant",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{superadminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/admin/users/2",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"admin",
-								"users",
-								"2"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Ubah Role User Tenants",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{superadminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"userId\": 3,\r\n    \"role\": \"admin\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/admin/users/2/role",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"admin",
-								"users",
-								"2",
-								"role"
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
 		{
-			"name": "gateway",
+			"name": "admin",
 			"item": [
 				{
-					"name": "Get Services Users",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{adminToken}}",
-									"type": "string"
+					"name": "permissions",
+					"item": [
+						{
+							"name": "Grant Permissions",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{adminToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user_id\": 4\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/gateway/services/2/permissions",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"gateway",
+										"services",
+										"2",
+										"permissions"
+									]
 								}
-							]
+							},
+							"response": []
 						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/gateway/services",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"gateway",
-								"services"
-							]
+						{
+							"name": "Remove Permissions",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{adminToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/gateway/services/1/permissions/2",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"gateway",
+										"services",
+										"1",
+										"permissions",
+										"2"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				},
 				{
 					"name": "Add Service",
@@ -262,7 +340,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"version\": \"v1\", \r\n    \"name\": \"todo\", \r\n    \"target\": \"https://688eeca4f21ab1769f87bc60.mockapi.io/todo\"\r\n}",
+							"raw": "{\r\n    \"version\": \"v1\", \r\n    \"name\": \"todo_bri\", \r\n    \"target\": \"https://688eeca4f21ab1769f87bc60.mockapi.io/todo\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -283,7 +361,7 @@
 					"response": []
 				},
 				{
-					"name": "Set Rate Limit By Service Level",
+					"name": "Set Rate Limit Gateway By Service Level",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -307,96 +385,15 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseURL}}/gateway/services/1/rate-limit",
+							"raw": "{{baseURL}}/gateway/services/2/rate-limit",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"gateway",
 								"services",
-								"1",
+								"2",
 								"rate-limit"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Override Rate Limit By User",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{adminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"rate_limit\": 0\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/gateway/services/1/user-rate-limit",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"gateway",
-								"services",
-								"1",
-								"user-rate-limit"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET List Rate-Limit By Users",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{adminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"rate_limit\": 1000\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/gateway/services/1/user-rate-limits",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"gateway",
-								"services",
-								"1",
-								"user-rate-limits"
 							]
 						}
 					},
@@ -444,14 +441,9 @@
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Proxy",
-			"item": [
+				},
 				{
-					"name": "Consume API",
+					"name": "Get Services From Gateway",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -466,28 +458,20 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/api/v1/todo/users/",
+							"raw": "{{baseURL}}/gateway/services",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
-								"api",
-								"v1",
-								"todo",
-								"users",
-								""
+								"gateway",
+								"services"
 							]
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "permissions",
-			"item": [
+				},
 				{
-					"name": "Grant Permissions",
+					"name": "Override Rate Limit By User",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -499,11 +483,11 @@
 								}
 							]
 						},
-						"method": "POST",
+						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"user_id\": 2\r\n}",
+							"raw": "{\r\n    \"rate_limit\": 0\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -511,7 +495,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseURL}}/gateway/services/1/permissions",
+							"raw": "{{baseURL}}/gateway/services/1/user-rate-limit",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -519,14 +503,14 @@
 								"gateway",
 								"services",
 								"1",
-								"permissions"
+								"user-rate-limit"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Remove Permissions",
+					"name": "GET List Rate-Limit By Users",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -538,10 +522,19 @@
 								}
 							]
 						},
-						"method": "DELETE",
+						"method": "PUT",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"rate_limit\": 1000\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{baseURL}}/gateway/services/1/permissions/2",
+							"raw": "{{baseURL}}/gateway/services/1/user-rate-limit",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -549,8 +542,7 @@
 								"gateway",
 								"services",
 								"1",
-								"permissions",
-								"2"
+								"user-rate-limit"
 							]
 						}
 					},
@@ -599,7 +591,7 @@
 		},
 		{
 			"key": "userToken",
-			"value": "",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ1c2VyMDFfYnJpMjAyNSIsInJvbGUiOiJ1c2VyIiwidGVuYW50X2lkIjoyLCJpYXQiOjE3NTQyMzU4MTQsImV4cCI6MTc1NDI3OTAxNH0.JKQHlIipPLG5VJXoR1FW2lT3s4tLMwsEmBIjlFlrbhE",
 			"type": "string"
 		}
 	]

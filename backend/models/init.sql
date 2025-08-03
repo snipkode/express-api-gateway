@@ -1,8 +1,21 @@
 -- Tabel tenant
 CREATE TABLE IF NOT EXISTS tenants (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT UNIQUE NOT NULL,
-  status TEXT DEFAULT 'active' -- aktif secara default
+  name TEXT UNIQUE NOT NULL,                    -- Slug unik tenant (wajib)
+  display_name TEXT,                            -- Nama tampilan
+  owner_email TEXT,                             -- Email admin utama tenant
+  status TEXT DEFAULT 'active',                 -- 'active', 'inactive', 'suspended'
+
+  subscription_plan TEXT DEFAULT 'free',        -- 'free', 'basic', 'pro', etc.
+  subscription_expiry DATETIME,                 -- Tanggal akhir subscription
+
+  max_users INTEGER,                            -- Batasan user dalam tenant
+  custom_domain TEXT,                           -- Domain khusus tenant
+  logo_url TEXT,                                -- Logo branding tenant
+  settings_json TEXT,                           -- Setting khusus dalam format JSON
+
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME
 );
 
 -- Tabel pengguna

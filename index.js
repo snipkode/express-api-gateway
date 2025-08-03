@@ -4,7 +4,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const gatewayRoutes = require('./routes/gateway');
 const proxyRoutes = require('./routes/proxy');
-const dynamicRateLimiter = require('./rateLimiterDynamic');
+const dynamicRateLimiter = require('./dynamicRateLimiter');
 const authenticateToken = require('./middlewares/auth'); // contoh middleware auth JWT
 
 const app = express();

@@ -17,5 +17,17 @@
   "devDependencies": {
     "dotenv": "^17.2.1",
     "nodemon": "^3.1.10"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "node_modules/",
+      "databases/",
+      "logs/",
+      "public/",
+      "*.test.js",
+      ".git/",
+      "tmp/",
+      "README.md"
+    ]
   }
 }

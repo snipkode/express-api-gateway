@@ -283,7 +283,7 @@
 					"response": []
 				},
 				{
-					"name": "Update Rate-Limit",
+					"name": "Set Rate Limit By Service Level",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -322,7 +322,7 @@
 					"response": []
 				},
 				{
-					"name": "Update Rate-Limit User",
+					"name": "Override Rate Limit By User",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -361,7 +361,7 @@
 					"response": []
 				},
 				{
-					"name": "GET LIST Rate-Limit Users",
+					"name": "GET List Rate-Limit By Users",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -403,7 +403,7 @@
 					"response": []
 				},
 				{
-					"name": "GET Rate-Limit By User",
+					"name": "GET Rate-Limit By User Detail",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},

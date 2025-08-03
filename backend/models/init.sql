@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS tenants (
   custom_domain TEXT,                                      -- Domain kustom milik tenant (opsional)
   logo_url TEXT,                                           -- URL logo atau branding tenant
   settings_json TEXT,                                      -- Konfigurasi tambahan dalam format JSON
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Waktu tenant dibuat
+  created_at DATETIME DEFAULT (datetime('now', '+7 hours')),           -- Waktu tenant dibuat (WIB)
   updated_at DATETIME                                      -- Waktu tenant terakhir diperbarui
 );
 
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS users (
   tenant_id INTEGER NOT NULL,                              -- Relasi ke tenant asal
   status TEXT DEFAULT 'active',                            -- Status user ('active', 'inactive')
   last_login DATETIME,                                     -- Terakhir kali user login
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Waktu user dibuat
+  created_at DATETIME DEFAULT (datetime('now', '+7 hours')),           -- Waktu user dibuat (WIB)
   updated_at DATETIME,                                     -- Waktu user terakhir diperbarui
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE  -- Hapus user jika tenant-nya dihapus
 );
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS services (
   status TEXT DEFAULT 'active',                             -- Status aktif/nonaktif
   rate_limit INTEGER DEFAULT 100,                           -- Rate limit default per user
   swagger TEXT,                                             -- File dokumentasi Swagger (opsional)
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Timestamp saat dibuat
+  created_at DATETIME DEFAULT (datetime('now', '+7 hours')),            -- Timestamp saat dibuat (WIB)
   updated_at DATETIME,                                      -- Timestamp saat diperbarui
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, -- Hapus semua servicenya jika tenant dihapus
   UNIQUE(version, name, tenant_id)                          -- Unik berdasarkan versi, nama, dan tenant
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS permissions (
   service_id INTEGER NOT NULL,                              -- ID service yang diakses
   tenant_id INTEGER NOT NULL,                               -- ID tenant (multi-tenant support)
   access_level TEXT DEFAULT 'read',                         -- Hak akses: read / write / full
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Waktu permission dibuat
+  created_at DATETIME DEFAULT (datetime('now', '+7 hours')),            -- Waktu permission dibuat (WIB)
   updated_at DATETIME,                                      -- Waktu terakhir permission diperbarui
 
   -- Relasi ke tabel users, services, dan tenants
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   action TEXT NOT NULL,                                    -- Jenis aksi (login, update, delete, dll)
   resource TEXT,                                           -- Objek yang dipengaruhi (contoh: 'users', 'services')
   description TEXT,                                        -- Deskripsi singkat log
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Waktu kejadian log
+  timestamp DATETIME DEFAULT (datetime('now', '+7 hours')),            -- Waktu kejadian log (WIB)
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,       -- User bisa jadi null jika dihapus
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE SET NULL    -- Tenant juga bisa null
 );
@@ -107,8 +107,8 @@ CREATE TABLE IF NOT EXISTS user_rate_limits (
   tenant_id INTEGER NOT NULL,                               -- ID tenant (multi-tenant support)
   rate_limit INTEGER NOT NULL DEFAULT 0,                    -- Override batas maksimal request (opsional)
   remaining INTEGER NOT NULL DEFAULT 0,                     -- Sisa kuota request saat ini
-  last_reset DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Waktu terakhir reset rate limit
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,            -- Waktu entri dibuat
+  last_reset DATETIME DEFAULT (datetime('now', '+7 hours')),            -- Waktu terakhir reset rate limit (WIB)
+  created_at DATETIME DEFAULT (datetime('now', '+7 hours')),            -- Waktu entri dibuat (WIB)
   updated_at DATETIME,                                      -- Waktu entri terakhir diperbarui
 
   -- Relasi terhadap tabel users dan services
@@ -126,7 +126,7 @@ AFTER UPDATE ON user_rate_limits
 FOR EACH ROW
 BEGIN
   UPDATE user_rate_limits
-  SET updated_at = CURRENT_TIMESTAMP
+  SET updated_at = datetime('now', '+7 hours')
   WHERE id = OLD.id;
 END;
 
@@ -140,7 +140,7 @@ CREATE TRIGGER IF NOT EXISTS trg_tenants_updated_at
 AFTER UPDATE ON tenants
 FOR EACH ROW
 BEGIN
-  UPDATE tenants SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+  UPDATE tenants SET updated_at = datetime('now', '+7 hours') WHERE id = OLD.id;
 END;
 
 -- Trigger: saat baris user diubah, updated_at diperbarui otomatis
@@ -148,7 +148,7 @@ CREATE TRIGGER IF NOT EXISTS trg_users_updated_at
 AFTER UPDATE ON users
 FOR EACH ROW
 BEGIN
-  UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+  UPDATE users SET updated_at = datetime('now', '+7 hours') WHERE id = OLD.id;
 END;
 
 -- Trigger: saat baris service diubah, updated_at diperbarui otomatis
@@ -156,7 +156,7 @@ CREATE TRIGGER IF NOT EXISTS trg_services_updated_at
 AFTER UPDATE ON services
 FOR EACH ROW
 BEGIN
-  UPDATE services SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+  UPDATE services SET updated_at = datetime('now', '+7 hours') WHERE id = OLD.id;
 END;
 
 -- Trigger: saat baris permission diubah, updated_at diperbarui otomatis
@@ -164,5 +164,5 @@ CREATE TRIGGER IF NOT EXISTS trg_permissions_updated_at
 AFTER UPDATE ON permissions
 FOR EACH ROW
 BEGIN
-  UPDATE permissions SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+  UPDATE permissions SET updated_at = datetime('now', '+7 hours') WHERE id = OLD.id;
 END;

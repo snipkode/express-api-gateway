@@ -5,7 +5,6 @@ const adminRoutes = require('./routes/admin');
 const gatewayRoutes = require('./routes/gateway');
 const proxyRoutes = require('./routes/proxy');
 const dynamicRateLimiter = require('./dynamicRateLimiter');
-const authenticateToken = require('./middlewares/auth'); // contoh middleware auth JWT
 
 const app = express();
 
@@ -13,9 +12,6 @@ app.use(express.json());
 
 // Routes tanpa autentikasi (misal register dan login)
 app.use('/auth', authRoutes);
-
-// Middleware autentikasi JWT (pastikan user login dan dapat token)
-app.use(authenticateToken);
 
 // Middleware rate limiter dinamis sebelum akses service
 app.use(dynamicRateLimiter);

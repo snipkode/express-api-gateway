@@ -226,7 +226,7 @@ paths:
                         target: { type: string }
                         rate_limit: { type: integer }
 
-  /proxy/docs/{version}/{serviceName}/swagger.json:
+  /api/docs/{version}/{serviceName}/swagger.json:
     get:
       tags: [Proxy]
       summary: Ambil Swagger JSON dari service
@@ -253,7 +253,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /proxy/{version}/{serviceName}/{any*}:
+  /api/{version}/{serviceName}/{any*}:
     get:
       tags: [Proxy]
       summary: Proxy dinamis ke target service

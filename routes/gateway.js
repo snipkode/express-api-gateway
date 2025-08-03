@@ -53,46 +53,61 @@ router.put('/services/:id/rate-limit', authenticate, (req, res) => {
 
 // User override rate_limit untuk service tertentu
 router.put('/services/:id/user-rate-limit', authenticate, (req, res) => {
-  const { id } = req.params; // service_id
+  const { id: service_id } = req.params;
   const { rate_limit } = req.body;
   const { id: user_id, tenant_id, role } = req.user;
 
+  // Validasi nilai rate_limit
   if (rate_limit == null || typeof rate_limit !== 'number' || rate_limit <= 0) {
     return res.status(400).json({ error: 'Invalid or missing rate_limit' });
   }
 
-  // Pastikan service ada & milik tenant yang sama
-  const service = db.prepare(`SELECT * FROM services WHERE id = ? AND tenant_id = ?`).get(id, tenant_id);
-  if (!service) return res.status(404).json({ error: 'Service not found' });
-
-  // Cek apakah user punya akses ke service tersebut
-  const permission = db.prepare(`
-    SELECT 1 FROM permissions 
-    WHERE user_id = ? AND service_id = ? AND tenant_id = ?
-  `).get(user_id, id, tenant_id);
-
-  if (!permission) {
-    return res.status(403).json({ error: 'You do not have permission to this service' });
+  // Pastikan service ada dan dari tenant yang sama
+  const service = db.prepare(`
+    SELECT * FROM services WHERE id = ? AND tenant_id = ?
+  `).get(service_id, tenant_id);
+  if (!service) {
+    return res.status(404).json({ error: 'Service not found' });
   }
 
-  // Simpan atau update rate_limit untuk user+service
+  // Jika superadmin atau admin tenant, diizinkan langsung
+  const isAdmin = ['superadmin', 'admin'].includes(role);
+
+  // Kalau bukan admin, cek apakah user punya permission ke service
+  let hasPermission = false;
+  if (!isAdmin) {
+    const permission = db.prepare(`
+      SELECT 1 FROM permissions
+      WHERE user_id = ? AND service_id = ? AND tenant_id = ?
+    `).get(user_id, service_id, tenant_id);
+
+    if (!permission) {
+      return res.status(403).json({ error: 'You do not have permission to this service' });
+    }
+
+    hasPermission = true;
+  }
+
+  // Admin boleh override semua user mereka sendiri
+  // Simpan atau update rate_limit override
   const existing = db.prepare(`
     SELECT 1 FROM user_rate_limits WHERE user_id = ? AND service_id = ?
-  `).get(user_id, id);
+  `).get(user_id, service_id);
 
   if (existing) {
     db.prepare(`
       UPDATE user_rate_limits SET rate_limit = ? WHERE user_id = ? AND service_id = ?
-    `).run(rate_limit, user_id, id);
+    `).run(rate_limit, user_id, service_id);
   } else {
     db.prepare(`
       INSERT INTO user_rate_limits (user_id, service_id, tenant_id, rate_limit)
       VALUES (?, ?, ?, ?)
-    `).run(user_id, id, tenant_id, rate_limit);
+    `).run(user_id, service_id, tenant_id, rate_limit);
   }
 
-  res.json({ message: 'Your rate limit override is updated' });
+  res.json({ message: 'Rate limit override updated' });
 });
+
 
 // POST /gateway/services/:id/permissions
 // Tambah permission user ke service (hanya superadmin / admin tenant)

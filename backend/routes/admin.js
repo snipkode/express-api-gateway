@@ -10,6 +10,32 @@ function superadminOnly(req, res, next) {
   next();
 }
 
+// POST /admin/tenants - tambah tenant baru (superadmin only)
+router.post('/tenants', authenticate, superadminOnly, (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'Tenant name is required' });
+  }
+
+  // Cek apakah nama tenant sudah ada
+  const existingTenant = db.prepare(`SELECT * FROM tenants WHERE name = ?`).get(name);
+  if (existingTenant) {
+    return res.status(409).json({ error: 'Tenant name already exists' });
+  }
+
+  // Simpan tenant baru
+  const result = db.prepare(`INSERT INTO tenants (name) VALUES (?)`).run(name);
+
+  res.status(201).json({
+    message: 'Tenant created successfully',
+    tenant: {
+      id: result.lastInsertRowid,
+      name,
+    },
+  });
+});
+
 // GET /admin/tenants - lihat semua tenant (superadmin)
 router.get('/tenants', authenticate, superadminOnly, (req, res) => {
   const tenants = db.prepare(`SELECT id, name FROM tenants`).all();

@@ -3,13 +3,14 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const gatewayRoutes = require('./routes/gateway');
 const proxyRoutes = require('./routes/proxy');
+const authenticateToken = require('./middlewares/auth');
 
 const app = express();
 
 app.use(express.json());
 
 // Route proxy dinamis yang meneruskan request ke service tujuan
-app.use('/api', proxyRoutes);
+app.use('/api', authenticateToken, proxyRoutes);
 
 // Routes tanpa autentikasi (misal register dan login)
 app.use('/auth', authRoutes);

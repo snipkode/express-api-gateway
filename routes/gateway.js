@@ -94,5 +94,72 @@ router.put('/services/:id/user-rate-limit', authenticate, (req, res) => {
   res.json({ message: 'Your rate limit override is updated' });
 });
 
+// POST /gateway/services/:id/permissions
+// Tambah permission user ke service (hanya superadmin / admin tenant)
+router.post('/services/:id/permissions', authenticate, (req, res) => {
+  const { id: service_id } = req.params;
+  const { user_id } = req.body;
+  const { role, tenant_id } = req.user;
+
+  if (!['superadmin', 'admin'].includes(role)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  if (!user_id) {
+    return res.status(400).json({ error: 'Missing user_id' });
+  }
+
+  // Pastikan service valid dan milik tenant yang sama
+  const service = db.prepare(`SELECT * FROM services WHERE id = ? AND tenant_id = ?`).get(service_id, tenant_id);
+  if (!service) return res.status(404).json({ error: 'Service not found' });
+
+  // Pastikan user ada dan dari tenant yang sama
+  const user = db.prepare(`SELECT * FROM users WHERE id = ? AND tenant_id = ?`).get(user_id, tenant_id);
+  if (!user) return res.status(404).json({ error: 'User not found or not in your tenant' });
+
+  // Cek permission sudah ada
+  const existing = db.prepare(`
+    SELECT 1 FROM permissions WHERE user_id = ? AND service_id = ?
+  `).get(user_id, service_id);
+  if (existing) {
+    return res.status(409).json({ error: 'Permission already exists' });
+  }
+
+  // Tambah permission
+  db.prepare(`
+    INSERT INTO permissions (user_id, service_id, tenant_id)
+    VALUES (?, ?, ?)
+  `).run(user_id, service_id, tenant_id);
+
+  res.json({ message: 'Permission added' });
+});
+
+// DELETE /gateway/services/:id/permissions/:userId
+// Hapus permission user ke service (hanya superadmin / admin tenant)
+router.delete('/services/:id/permissions/:userId', authenticate, (req, res) => {
+  const { id: service_id, userId: user_id } = req.params;
+  const { role, tenant_id } = req.user;
+
+  if (!['superadmin', 'admin'].includes(role)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  // Pastikan permission ada dan dalam tenant
+  const permission = db.prepare(`
+    SELECT 1 FROM permissions WHERE user_id = ? AND service_id = ? AND tenant_id = ?
+  `).get(user_id, service_id, tenant_id);
+
+  if (!permission) {
+    return res.status(404).json({ error: 'Permission not found' });
+  }
+
+  db.prepare(`
+    DELETE FROM permissions WHERE user_id = ? AND service_id = ?
+  `).run(user_id, service_id);
+
+  res.json({ message: 'Permission removed' });
+});
+
+
 
 module.exports = router;

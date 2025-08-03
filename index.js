@@ -1,26 +1,24 @@
-require('dotenv').config();
 const express = require('express');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const gatewayRoutes = require('./routes/gateway');
 const proxyRoutes = require('./routes/proxy');
-const dynamicRateLimiter = require('./dynamicRateLimiter');
 
 const app = express();
 
 app.use(express.json());
 
+// Route proxy dinamis yang meneruskan request ke service tujuan
+app.use('/api', proxyRoutes);
+
 // Routes tanpa autentikasi (misal register dan login)
 app.use('/auth', authRoutes);
 
-// Route untuk admin superadmin
+// Route untuk admin dan superadmin
 app.use('/admin', adminRoutes);
 
 // Route untuk kelola services / katalog API
 app.use('/gateway', gatewayRoutes);
-
-// Route proxy dinamis yang meneruskan request ke service tujuan
-app.use('/api', proxyRoutes);
 
 // Handle 404 jika route tidak ditemukan
 app.use((req, res) => {

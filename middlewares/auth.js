@@ -1,4 +1,6 @@
 // Middleware authenticate
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ error: 'No token' });

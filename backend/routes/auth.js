@@ -51,8 +51,8 @@ router.post('/register', registerLimiter, validateRolePublic, async (req, res) =
   try {
     let { username, password, role, tenant_id } = req.body;
 
-     if (!username || !password || !role) {
-      return res.status(400).json({ error: 'Username, password, and role are required' });
+     if (!username || !password || !role || !tenant_id) {
+      return res.status(400).json({ error: 'Username, password, role, and tenant_id are required' });
     }
     
     // Input sanitization
@@ -75,7 +75,7 @@ router.post('/register', registerLimiter, validateRolePublic, async (req, res) =
       });
     }
     
-    const tenantId = tenant_id ? tenant_id : req.user.tenant_id;
+    const tenantId = tenant_id;
     
     // Sanitize untuk database query
     const cleanUsername = username.trim().toLowerCase();

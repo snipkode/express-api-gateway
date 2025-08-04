@@ -58,6 +58,10 @@ router.get('/users', authenticate, checkRole(['superadmin', 'admin']), (req, res
 // GET /admin/users/:tenantId - lihat semua user tenant (superadmin)
 router.get('/users/:tenantId', authenticate, superadminOnly, (req, res) => {
   const tenantId = req.params.tenantId;
+  //jika tenantId == 1 boleh semua users tenant
+  if (tenantId != 1 && req.user.tenant_id != tenantId) {
+    return res.status(403).json({ error: 'Forbidden: You do not have access to this tenant' });
+  }
   const users = db.prepare(`
                 SELECT 
                   u.id, 

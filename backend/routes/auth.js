@@ -172,13 +172,15 @@ switch (req.user.role) {
 }
 
 // Batasan role yang boleh dibuat
-switch (role) {
+const roleToCreate = req.body.role ? req.body.role.toLowerCase() : 'user';
+
+switch (req.user.role) {
   case 'superadmin':
     // superadmin bisa membuat semua role (tidak ada pembatasan)
     break;
   case 'admin':
     // admin tidak boleh membuat superadmin
-    if (role === 'superadmin') {
+    if (roleToCreate === 'superadmin') {
       return res.status(403).json({ error: 'Forbidden: Admins cannot create superadmin users' });
     }
     break;

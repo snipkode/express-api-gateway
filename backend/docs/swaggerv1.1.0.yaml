@@ -6,7 +6,7 @@ info:
   contact:
     name: API Support
 servers:
-  - url: https://3000-snipkode-expressapigate-n5odvkjdy6m.ws-us120.gitpod.io
+  - url: http://localhost:3000
     description: Development server
 
 components:

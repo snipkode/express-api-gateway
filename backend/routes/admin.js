@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const authenticate = require('../middlewares/auth');
 const { superadminOnly } = require('../middlewares/signUpValidation');
+const checkRole = require('../middlewares/checkRole');
 
 // POST /admin/tenants - tambah tenant baru (superadmin only)
 router.post('/tenants', authenticate, superadminOnly, (req, res) => {
@@ -44,10 +45,27 @@ router.get('/users/:tenantId', authenticate, superadminOnly, (req, res) => {
 });
 
 // POST /admin/users/:tenantId/role - tambah/ubah role user tenant
-router.post('/users/:tenantId/role', authenticate, superadminOnly, (req, res) => {
+router.post('/users/:tenantId/role', authenticate, checkRole(['superadmin', 'admin']), (req, res) => {
   const tenantId = req.params.tenantId;
   const { userId, role } = req.body;
+
   if (!userId || !role) return res.status(400).json({ error: 'Missing fields' });
+
+  const roleToCreate = req.body.role ? req.body.role.toLowerCase() : 'user';
+
+  switch (req.user.role) {
+    case 'superadmin':
+      // superadmin bisa update semua role (tidak ada pembatasan)
+      break;
+    case 'admin':
+      // admin tidak boleh update ke role -> superadmin
+      if (roleToCreate === 'superadmin') {
+        return res.status(403).json({ error: 'Forbidden: Admins cannot update role users to Superadmin' });
+      }
+      break;
+    default:
+      return res.status(403).json({ error: 'Forbidden: Invalid role for this operation' });
+    }
 
   const user = db.prepare(`SELECT * FROM users WHERE id = ? AND tenant_id = ?`).get(userId, tenantId);
   if (!user) return res.status(404).json({ error: 'User not found' });

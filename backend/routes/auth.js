@@ -171,6 +171,21 @@ switch (req.user.role) {
     return res.status(403).json({ error: 'Forbidden: Invalid role for this operation' });
 }
 
+// Batasan role yang boleh dibuat
+switch (role) {
+  case 'superadmin':
+    // superadmin bisa membuat semua role (tidak ada pembatasan)
+    break;
+  case 'admin':
+    // admin tidak boleh membuat superadmin
+    if (role === 'superadmin') {
+      return res.status(403).json({ error: 'Forbidden: Admins cannot create superadmin users' });
+    }
+    break;
+  default:
+    return res.status(403).json({ error: 'Forbidden: Invalid role for this operation' });
+}
+
     // Sanitize untuk database query
     const cleanUsername = username.trim().toLowerCase();
     const cleanRole = role.trim().toLowerCase();

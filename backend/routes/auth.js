@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const db = require('../db');
 const authenticate = require('../middlewares/auth');
 const validateRolePublic = require('../middlewares/validateRolePublic');
+const checkRole = require('../middlewares/checkRole');
 const { validateUsername, validatePassword, validateRole, sanitizeInput, registerLimiter, superadminOnly, ALLOWED_ROLES } = require('../middlewares/signUpValidation');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
@@ -129,7 +130,7 @@ router.post('/register', registerLimiter, validateRolePublic, async (req, res) =
   }
 });
 
-router.post('/register/tenant', registerLimiter, authenticate, superadminOnly,async (req, res) => {
+router.post('/register/tenant', registerLimiter, authenticate, checkRole(['superadmin', 'admin']),async (req, res) => {
   try {
     let { username, password, role, tenant_id } = req.body;
 
@@ -156,9 +157,20 @@ router.post('/register/tenant', registerLimiter, authenticate, superadminOnly,as
         details: allErrors
       });
     }
-    
-    const tenantId = tenant_id ? tenant_id : req.user.tenant_id;
-    
+
+let tenantId;
+
+switch (req.user.role) {
+  case 'superadmin':
+    tenantId = req.body.tenant_id ? req.body.tenant_id : req.user.tenant_id;
+    break;
+  case 'admin':
+    tenantId = req.user.tenant_id;
+    break;
+  default:
+    return res.status(403).json({ error: 'Forbidden: Invalid role for this operation' });
+}
+
     // Sanitize untuk database query
     const cleanUsername = username.trim().toLowerCase();
     const cleanRole = role.trim().toLowerCase();

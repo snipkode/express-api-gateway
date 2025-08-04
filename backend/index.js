@@ -8,7 +8,7 @@ const swaggerUi         = require('swagger-ui-express');
 const fs                = require('fs');
 const yaml              = require('js-yaml');
 const cors              = require('cors');
-const swaggerDocument   = yaml.load(fs.readFileSync('./docs/swagger-output.yaml', 'utf8'));
+const swaggerDocument   = yaml.load(fs.readFileSync('./docs/swaggerv1.1.0.yaml', 'utf8'));
 const requestLogger     = require('./middlewares/requestLogger'); 
 
 const app = express();

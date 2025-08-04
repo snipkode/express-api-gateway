@@ -1,0 +1,623 @@
+openapi: 3.0.3
+info:
+  title: Express API Gateway
+  description: Multi-tenant API Gateway with role-based access control and service management
+  version: 1.0.0
+  contact:
+    name: API Support
+servers:
+  - url: https://3000-snipkode-expressapigate-n5odvkjdy6m.ws-us120.gitpod.io
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+        - tenant
+      properties:
+        username:
+          type: string
+          example: "superadmin"
+        password:
+          type: string
+          example: "supersecretpassword"
+        tenant:
+          type: string
+          example: "default"
+    
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+        - role
+        - tenant_id
+      properties:
+        username:
+          type: string
+          example: "user03_bri2025"
+        password:
+          type: string
+          example: "@lam_u6{gHNaa"
+        role:
+          type: string
+          enum: [user, admin, superadmin]
+          example: "user"
+        tenant_id:
+          type: integer
+          example: 2
+    
+    TenantRegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+        - role
+      properties:
+        username:
+          type: string
+          example: "superadmin_bri2"
+        password:
+          type: string
+          example: "@lam_u6{gHNaa"
+        role:
+          type: string
+          enum: [user, admin, superadmin]
+          example: "superadmin"
+        tenant_id:
+          type: integer
+          example: 2
+    
+    CreateTenantRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "BRI"
+    
+    CreateServiceRequest:
+      type: object
+      required:
+        - version
+        - name
+        - target
+      properties:
+        version:
+          type: string
+          example: "v2"
+        name:
+          type: string
+          example: "todo_bri"
+        target:
+          type: string
+          format: uri
+          example: "https://688eeca4f21ab1769f87bc60.mockapi.io/todo"
+    
+    ChangeRoleRequest:
+      type: object
+      required:
+        - userId
+        - role
+      properties:
+        userId:
+          type: integer
+          example: 3
+        role:
+          type: string
+          enum: [user, admin, superadmin]
+          example: "admin"
+    
+    GrantPermissionRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: integer
+          example: 4
+    
+    RateLimitRequest:
+      type: object
+      required:
+        - rate_limit
+      properties:
+        rate_limit:
+          type: integer
+          example: 1000
+    
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Authentication endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Public user registration
+      description: Register a new user (public endpoint)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/register/tenant:
+    post:
+      tags:
+        - Authentication
+      summary: Register user to tenant
+      description: Register a new user to a specific tenant (requires authentication)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantRegisterRequest'
+      responses:
+        '201':
+          description: User registered to tenant successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Superadmin endpoints
+  /admin/tenants:
+    get:
+      tags:
+        - Superadmin
+      summary: Get tenant list
+      description: Retrieve list of all tenants (superadmin only)
+      responses:
+        '200':
+          description: List of tenants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+        '403':
+          description: Insufficient permissions
+
+    post:
+      tags:
+        - Superadmin
+      summary: Add tenant
+      description: Create a new tenant (superadmin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTenantRequest'
+      responses:
+        '201':
+          description: Tenant created successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Get users
+      description: Retrieve list of users
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    username:
+                      type: string
+                    role:
+                      type: string
+                    tenant_id:
+                      type: integer
+
+  /admin/users/{tenantId}:
+    get:
+      tags:
+        - Superadmin
+      summary: Get users from tenant ID
+      description: Retrieve users from specific tenant (superadmin only)
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 2
+      responses:
+        '200':
+          description: List of users from tenant
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /admin/users/{tenantId}/role:
+    post:
+      tags:
+        - Admin
+      summary: Change user role
+      description: Change role of a user within a tenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeRoleRequest'
+      responses:
+        '200':
+          description: User role changed successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+
+  # Gateway Service Management
+  /gateway/services:
+    get:
+      tags:
+        - Services
+      summary: List services
+      description: Get list of available services
+      responses:
+        '200':
+          description: List of services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    version:
+                      type: string
+                    name:
+                      type: string
+                    target:
+                      type: string
+
+    post:
+      tags:
+        - Services
+      summary: Add service
+      description: Register a new service (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateServiceRequest'
+      responses:
+        '201':
+          description: Service created successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+
+  /gateway/services/{serviceId}/permissions:
+    post:
+      tags:
+        - Permissions
+      summary: Grant permissions
+      description: Grant service permissions to a user (admin only)
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GrantPermissionRequest'
+      responses:
+        '200':
+          description: Permissions granted successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+
+  /gateway/services/{serviceId}/permissions/{userId}:
+    delete:
+      tags:
+        - Permissions
+      summary: Remove permissions
+      description: Remove service permissions from a user (admin only)
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 2
+      responses:
+        '200':
+          description: Permissions removed successfully
+        '403':
+          description: Insufficient permissions
+
+  # Rate Limiting
+  /gateway/services/{serviceId}/rate-limit:
+    put:
+      tags:
+        - Rate Limiting
+      summary: Set service rate limit
+      description: Set rate limit for a service
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateLimitRequest'
+      responses:
+        '200':
+          description: Rate limit updated successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /gateway/services/{serviceId}/user-rate-limit:
+    put:
+      tags:
+        - Rate Limiting
+      summary: Set user rate limit
+      description: Set rate limit for current user on a service
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateLimitRequest'
+      responses:
+        '200':
+          description: User rate limit updated successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /gateway/services/{serviceId}/user-rate-limits/{userId}:
+    get:
+      tags:
+        - Rate Limiting
+      summary: Get user rate limit
+      description: Get rate limit information for a specific user on a service
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 2
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 4
+      responses:
+        '200':
+          description: User rate limit information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                  service_id:
+                    type: integer
+                  rate_limit:
+                    type: integer
+                  current_usage:
+                    type: integer
+
+  # API Proxy
+  /api/{version}/{serviceName}/{path}:
+    get:
+      tags:
+        - API Proxy
+      summary: API Proxy
+      description: Proxy requests to registered services
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "v2"
+        - name: serviceName
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "todo_bri"
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "users/"
+      responses:
+        '200':
+          description: Successful proxy response
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied or rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+tags:
+  - name: Authentication
+    description: User authentication and registration
+  - name: Superadmin
+    description: Superadmin operations (tenant management)
+  - name: Admin
+    description: Admin operations (user and service management)
+  - name: Services
+    description: Service registration and management
+  - name: Permissions
+    description: Service permission management
+  - name: Rate Limiting
+    description: Rate limiting configuration
+  - name: API Proxy
+    description: Proxied API requests

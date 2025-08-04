@@ -12,7 +12,10 @@ const swaggerDocument   = yaml.load(fs.readFileSync('./docs/swagger-output.yaml'
 const requestLogger     = require('./middlewares/requestLogger'); 
 
 const app = express();
-require('dotenv').config();
+
+if(process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 // ⏱ Middleware logging durasi request
 if (process.env.ENABLE_REQUEST_LOGGER) {

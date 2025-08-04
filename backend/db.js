@@ -25,12 +25,12 @@ async function createSuperadmin() {
 
   const superadmin = db.prepare(`SELECT * FROM users WHERE role = 'superadmin' AND tenant_id = ?`).get(tenant.id);
   if (!superadmin) {
-    const hashedPassword = await bcrypt.hash('supersecretpassword', 10);
+    const hashedPassword = await bcrypt.hash(process.env.PASSWORD_SUPERADMIN || 'supersecretpassword', 10);
     db.prepare(`
       INSERT INTO users (username, password, role, tenant_id)
       VALUES (?, ?, ?, ?)
     `).run('superadmin', hashedPassword, 'superadmin', tenant.id);
-    console.log(`Superadmin created for tenant 'default': superadmin / supersecretpassword`);
+    console.log(`Superadmin created for tenant 'default': superadmin / ${process.env.PASSWORD_SUPERADMIN || 'supersecretpassword'}`);
   }
 }
 

@@ -37,10 +37,37 @@ router.get('/tenants', authenticate, superadminOnly, (req, res) => {
   res.json({ tenants });
 });
 
+
+// GET /admin/users - lihat semua user tenant (admin, superadmin)
+router.get('/users', authenticate, checkRole(['superadmin', 'admin']), (req, res) => {
+  const tenantId = req.user.tenant_id;
+  const users = db.prepare(`
+                SELECT 
+                  u.id, 
+                  u.username, 
+                  u.role, 
+                  t.name AS tenant_name
+                FROM users u
+                JOIN tenants t ON u.tenant_id = t.id
+                WHERE u.tenant_id = ?
+              `).all(tenantId);
+
+  res.json({ users });
+});
+
 // GET /admin/users/:tenantId - lihat semua user tenant (superadmin)
 router.get('/users/:tenantId', authenticate, superadminOnly, (req, res) => {
   const tenantId = req.params.tenantId;
-  const users = db.prepare(`SELECT id, username, role FROM users WHERE tenant_id = ?`).all(tenantId);
+  const users = db.prepare(`
+                SELECT 
+                  u.id, 
+                  u.username, 
+                  u.role, 
+                  t.name AS tenant_name
+                FROM users u
+                JOIN tenants t ON u.tenant_id = t.id
+                WHERE u.tenant_id = ?
+              `).all(tenantId);
   res.json({ users });
 });
 

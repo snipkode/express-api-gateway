@@ -67,6 +67,36 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Sign up",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"user02_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"user\",\r\n    \"tenant_id\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/register",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -158,7 +188,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"user01_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"user\",\r\n    \"tenant_id\": 2\r\n\r\n}",
+							"raw": "{\r\n    \"username\": \"user01_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"admin\",\r\n    \"tenant_id\": 2\r\n\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -166,13 +196,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseURL}}/auth/register",
+							"raw": "{{baseURL}}/auth/register/tenant",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"auth",
-								"register"
+								"register",
+								"tenant"
 							]
 						}
 					},
@@ -331,7 +362,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{adminToken}}",
+									"value": "{{userToken}}",
 									"type": "string"
 								}
 							]
@@ -401,9 +432,6 @@
 				},
 				{
 					"name": "GET Rate-Limit By User Detail",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -417,26 +445,17 @@
 						},
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"rate_limit\": 1000\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
-							"raw": "{{baseURL}}/gateway/services/1/user-rate-limits/2",
+							"raw": "{{baseURL}}/gateway/services/2/user-rate-limits/3",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"gateway",
 								"services",
-								"1",
+								"2",
 								"user-rate-limits",
-								"2"
+								"3"
 							]
 						}
 					},
@@ -487,7 +506,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"rate_limit\": 0\r\n}",
+							"raw": "{\r\n    \"rate_limit\": 6\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -495,53 +514,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseURL}}/gateway/services/1/user-rate-limit",
+							"raw": "{{baseURL}}/gateway/services/2/user-rate-limit",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"gateway",
 								"services",
-								"1",
-								"user-rate-limit"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET List Rate-Limit By Users",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{adminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"rate_limit\": 1000\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/gateway/services/1/user-rate-limit",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"gateway",
-								"services",
-								"1",
+								"2",
 								"user-rate-limit"
 							]
 						}

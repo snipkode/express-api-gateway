@@ -11,7 +11,7 @@
 			"name": "public",
 			"item": [
 				{
-					"name": "Consume API",
+					"name": "API Proxy",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -26,43 +26,16 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/api/v1/todo_bri/users/",
+							"raw": "{{baseURL}}/api/v2/todo_bri/users/",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"api",
-								"v1",
+								"v2",
 								"todo_bri",
 								"users",
 								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "login",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"user01_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"tenant\": \"BRI\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/auth/login",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"auth",
-								"login"
 							]
 						}
 					},
@@ -78,7 +51,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"user02_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"user\",\r\n    \"tenant_id\": 2\r\n}",
+							"raw": "{\r\n    \"username\": \"user03_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"user\",\r\n    \"tenant_id\": 2\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -104,7 +77,34 @@
 			"name": "superadmin",
 			"item": [
 				{
-					"name": "Ubah Role User Tenants",
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"superadmin\",\r\n    \"password\": \"supersecretpassword\",\r\n    \"tenant\": \"default\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Role User",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -143,36 +143,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Users By Tenants",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{superadminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/admin/users/2",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"admin",
-								"users",
-								"2"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Register User Tenants",
+					"name": "Add User Tenant",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -188,7 +159,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"user01_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"admin\",\r\n    \"tenant_id\": 2\r\n\r\n}",
+							"raw": "{\r\n    \"username\": \"superadmin_bri2\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"superadmin\",\r\n    \"tenant_id\": 2\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -204,34 +175,6 @@
 								"auth",
 								"register",
 								"tenant"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Tenant LIst",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{superadminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/admin/tenants",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"admin",
-								"tenants"
 							]
 						}
 					},
@@ -261,6 +204,91 @@
 								}
 							}
 						},
+						"url": {
+							"raw": "{{baseURL}}/admin/tenants",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"tenants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Users From Tenant ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{superadminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/admin/users/2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{superadminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/admin/users",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tenant LIst",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{superadminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
 						"url": {
 							"raw": "{{baseURL}}/admin/tenants",
 							"host": [
@@ -307,14 +335,14 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseURL}}/gateway/services/2/permissions",
+									"raw": "{{baseURL}}/gateway/services/3/permissions",
 									"host": [
 										"{{baseURL}}"
 									],
 									"path": [
 										"gateway",
 										"services",
-										"2",
+										"3",
 										"permissions"
 									]
 								}
@@ -355,6 +383,33 @@
 					]
 				},
 				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"tenant\": \"BRI\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Add Service",
 					"request": {
 						"auth": {
@@ -362,7 +417,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{userToken}}",
+									"value": "{{adminToken}}",
 									"type": "string"
 								}
 							]
@@ -371,7 +426,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"version\": \"v1\", \r\n    \"name\": \"todo_bri\", \r\n    \"target\": \"https://688eeca4f21ab1769f87bc60.mockapi.io/todo\"\r\n}",
+							"raw": "{\r\n    \"version\": \"v2\", \r\n    \"name\": \"todo_bri\", \r\n    \"target\": \"https://688eeca4f21ab1769f87bc60.mockapi.io/todo\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -392,7 +447,7 @@
 					"response": []
 				},
 				{
-					"name": "Set Rate Limit Gateway By Service Level",
+					"name": "Add User Tenant",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -400,6 +455,170 @@
 								{
 									"key": "token",
 									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"useradmin04\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"role\": \"admin\"\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/register/tenant",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"register",
+								"tenant"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Role User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": 3,\r\n    \"role\": \"admin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/admin/users/2/role",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								"2",
+								"role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/admin/users",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"admin",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Services",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/gateway/services",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rate Limit By User Level",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/gateway/services/2/user-rate-limits/4",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services",
+								"2",
+								"user-rate-limits",
+								"4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rate Limit By Service Level",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
 									"type": "string"
 								}
 							]
@@ -416,60 +635,61 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseURL}}/gateway/services/2/rate-limit",
+							"raw": "{{baseURL}}/gateway/services/3/rate-limit",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"gateway",
 								"services",
-								"2",
+								"3",
 								"rate-limit"
 							]
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
 				{
-					"name": "GET Rate-Limit By User Detail",
+					"name": "Login",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{adminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
+						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"user03_bri2025\",\r\n    \"password\": \"@lam_u6{gHNaa\",\r\n    \"tenant\": \"BRI\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{baseURL}}/gateway/services/2/user-rate-limits/3",
+							"raw": "{{baseURL}}/auth/login",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
-								"gateway",
-								"services",
-								"2",
-								"user-rate-limits",
-								"3"
+								"auth",
+								"login"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get Services From Gateway",
+					"name": "List Services",
 					"request": {
 						"auth": {
 							"type": "bearer",
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{adminToken}}",
+									"value": "{{userToken}}",
 									"type": "string"
 								}
 							]
@@ -490,14 +710,45 @@
 					"response": []
 				},
 				{
-					"name": "Override Rate Limit By User",
+					"name": "Rate Limit By User Level",
 					"request": {
 						"auth": {
 							"type": "bearer",
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{adminToken}}",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/gateway/services/3/user-rate-limits/5",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"gateway",
+								"services",
+								"3",
+								"user-rate-limits",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rate Limit By User Level",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
 									"type": "string"
 								}
 							]
@@ -506,7 +757,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"rate_limit\": 6\r\n}",
+							"raw": "{\r\n    \"rate_limit\": 11\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -514,15 +765,46 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseURL}}/gateway/services/2/user-rate-limit",
+							"raw": "{{baseURL}}/gateway/services/3/user-rate-limit",
 							"host": [
 								"{{baseURL}}"
 							],
 							"path": [
 								"gateway",
 								"services",
-								"2",
+								"3",
 								"user-rate-limit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Proxy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v2/todo_bri/users/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"todo_bri",
+								"users",
+								""
 							]
 						}
 					},

@@ -26,6 +26,8 @@ COPY . .
 
 # Set NODE_ENV
 ENV NODE_ENV=production
+ENV ENABLE_REQUEST_LOGGER=true
+ENV PASSWORD_SUPERADMIN=supersecretpassword
 
 # Expose port
 EXPOSE 3000

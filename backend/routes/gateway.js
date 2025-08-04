@@ -8,7 +8,18 @@ const authenticate = require('../middlewares/auth');
 // List semua services tenant user login
 router.get('/services', authenticate, (req, res) => {
   const tenantId = req.user.tenant_id;
-  const services = db.prepare(`SELECT id, version, name, target, rate_limit FROM services WHERE tenant_id = ?`).all(tenantId);
+  const query = `SELECT 
+                  s.id, 
+                  s.version, 
+                  s.name, 
+                  s.target, 
+                  s.rate_limit, 
+                  t.name AS tenant_name
+                FROM services s
+                JOIN tenants t ON s.tenant_id = t.id
+                WHERE s.tenant_id = ?;`;
+
+  const services = db.prepare(query).all(tenantId);
   res.json({ services });
 });
 

@@ -1,14 +1,25 @@
-const db = require('../db');
+const { Tenant } = require('../models');
 
-function checkTenantStatus(req, res, next) {
-  const tenantId = req.user.tenant_id || req.user.tenant; // sesuaikan struktur token
+async function checkTenantStatus(req, res, next) {
+  try {
+    const tenantId = req.user.tenant_id || req.user.tenant;
 
-  const tenant = db.prepare(`SELECT status FROM tenants WHERE id = ?`).get(tenantId);
-  if (!tenant || tenant.status !== 'active') {
-    return res.status(403).json({ error: 'Access denied. Tenant is disabled or does not exist.' });
+    const tenant = await Tenant.findOne({
+      where: { 
+        id: tenantId,
+        status: 'active'
+      }
+    });
+
+    if (!tenant) {
+      return res.status(403).json({ error: 'Access denied. Tenant is disabled or does not exist.' });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Tenant status check error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
-
-  next();
 }
 
 module.exports = checkTenantStatus;

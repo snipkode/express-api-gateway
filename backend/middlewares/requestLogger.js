@@ -1,14 +1,13 @@
-const db = require('../db');
+const { AuditLog } = require('../models'); // Assuming you have an AuditLog model defined in your Sequelize setup
 
 module.exports = function requestLogger(req, res, next) {
-    
-   if (!['POST', 'PUT', 'DELETE'].includes(req.method)) {
+  if (!['POST', 'PUT', 'DELETE'].includes(req.method)) {
     return next();
   }
   const start = Date.now();
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-  res.on('finish', () => {
+  res.on('finish', async () => {
     const duration = Date.now() - start;
     const method = req.method;
     const path = req.originalUrl;
@@ -17,7 +16,7 @@ module.exports = function requestLogger(req, res, next) {
     const tenant_id = req.user ? req.user.tenant_id : null;
     const username = req.user ? req.user.username : 'guest';
 
-    // Tentukan action dan resource secara sederhana berdasarkan method
+    // Determine action based on method
     let action = '';
     if (method === 'POST') action = 'create';
     else if (method === 'PUT' || method === 'PATCH') action = 'update';
@@ -25,23 +24,26 @@ module.exports = function requestLogger(req, res, next) {
     else if (method === 'GET') action = 'access';
     else action = 'other';
 
-    // Ambil resource dari path, contoh: '/services/123' -> 'services'
+    // Extract resource from path
     const segments = path.split('/').filter(Boolean);
     const resource = segments[0] || 'unknown';
 
     const description = `[${method}] ${path} - ${status} - ${duration}ms - IP: ${ip} - User: ${username}`;
 
-    // Tulis ke konsol
+    // Log to console
     console.log(description);
 
-    // Simpan ke audit_logs
+    // Save to audit_logs using Sequelize
     try {
-      db.prepare(`
-        INSERT INTO audit_logs (user_id, tenant_id, action, resource, description)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(user_id, tenant_id, action, resource, description);
+      await AuditLog.create({
+        user_id,
+        tenant_id,
+        action,
+        resource,
+        description,
+      });
     } catch (err) {
-      console.error('Gagal menyimpan audit log:', err);
+      console.error('Failed to save audit log:', err);
     }
   });
 

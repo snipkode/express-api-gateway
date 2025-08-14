@@ -1,6 +1,8 @@
 // Middleware authenticate
 const jwt = require('jsonwebtoken');
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '12h';
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -10,12 +12,15 @@ function authenticateToken(req, res, next) {
   if (!token) return res.status(401).json({ error: 'No token' });
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET, { maxAge: JWT_EXPIRES_IN });
     req.user = decoded;
     next();
-  } catch {
-    res.status(401).json({ error: 'Invalid token' });
+  } catch (err) {
+    res.status(401).json({ 
+      error: 'Invalid token',
+      message: err.name === 'TokenExpiredError' ? 'Token expired' : 'Token validation failed'
+    });
   }
 }
 
-module.exports = authenticateToken;
+module.exports = { authenticateToken, JWT_SECRET, JWT_EXPIRES_IN };

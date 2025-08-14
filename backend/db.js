@@ -1,42 +1,50 @@
-const Database = require('better-sqlite3');
-const fs = require('fs');
-const path = require('path');
+const { sequelize, User, Tenant } = require('./models');
 const bcrypt = require('bcrypt');
 
-const dbDir = path.join(__dirname, 'databases');
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir);
+async function initializeDatabase() {
+  try {
+    // Force sync all models with database (this will drop existing tables)
+    await sequelize.sync({ force: false });
+
+    // Create default tenant if it doesn't exist
+    let tenant = await Tenant.findOne({
+      where: { name: 'default' }
+    });
+
+    if (!tenant) {
+      tenant = await Tenant.create({ name: 'default' });
+      console.log(`Tenant 'default' created`);
+    }
+
+    // Create superadmin if it doesn't exist
+    const superadmin = await User.findOne({
+      where: {
+        role: 'superadmin',
+        tenant_id: tenant.id
+      }
+    });
+
+    if (!superadmin) {
+      const hashedPassword = await bcrypt.hash(
+        process.env.PASSWORD_SUPERADMIN || 'supersecretpassword',
+        10
+      );
+
+      await User.create({
+        username: 'superadmin',
+        password: hashedPassword,
+        role: 'superadmin',
+        tenant_id: tenant.id
+      });
+
+      console.log(`Superadmin created for tenant 'default'`);
+    }
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    process.exit(1);
+  }
 }
 
-const dbFile = path.join(dbDir, 'gateway.db');
-const initSql = fs.readFileSync(path.join(__dirname, 'models/init.sql'), 'utf-8');
+initializeDatabase();
 
-const db = new Database(dbFile);
-db.exec(initSql);
-
-// Fungsi async hash password (sync juga bisa, tapi async lebih baik)
-async function createSuperadmin() {
-  let tenant = db.prepare(`SELECT * FROM tenants WHERE name = ?`).get('default');
-  if (!tenant) {
-    db.prepare(`INSERT INTO tenants (name) VALUES (?)`).run('default');
-    tenant = db.prepare(`SELECT * FROM tenants WHERE name = ?`).get('default');
-    console.log(`Tenant 'default' created`);
-  }
-
-  const superadmin = db.prepare(`SELECT * FROM users WHERE role = 'superadmin' AND tenant_id = ?`).get(tenant.id);
-  if (!superadmin) {
-    const hashedPassword = await bcrypt.hash(process.env.PASSWORD_SUPERADMIN || 'supersecretpassword', 10);
-    db.prepare(`
-      INSERT INTO users (username, password, role, tenant_id)
-      VALUES (?, ?, ?, ?)
-    `).run('superadmin', hashedPassword, 'superadmin', tenant.id);
-    console.log(`Superadmin created for tenant 'default': superadmin / ${process.env.PASSWORD_SUPERADMIN || 'supersecretpassword'}`);
-  }
-}
-
-// Karena init harus sync, kita panggil langsung (note: bisa tweak kalau mau async)
-(async () => {
-  await createSuperadmin();
-})();
-
-module.exports = db;
+module.exports = sequelize;

@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const db = require('../db');
-const authenticate = require('../middlewares/auth');
+const { User, Tenant } = require('../models');
+const {authenticateToken} = require('../middlewares/auth');
 const validateRolePublic = require('../middlewares/validateRolePublic');
 const checkRole = require('../middlewares/checkRole');
 const { validateUsername, validatePassword, validateRole, sanitizeInput, registerLimiter, superadminOnly, ALLOWED_ROLES } = require('../middlewares/signUpValidation');
@@ -18,12 +18,21 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Missing fields' });
     }
 
-    const tenantRow = db.prepare('SELECT * FROM tenants WHERE name = ?').get(tenant);
+    const tenantRow = await Tenant.findOne({ 
+      where: { name: tenant }
+    });
+    
     if (!tenantRow) {
       return res.status(404).json({ error: 'Tenant not found' });
     }
 
-    const user = db.prepare('SELECT * FROM users WHERE username = ? AND tenant_id = ?').get(username, tenantRow.id);
+    const user = await User.findOne({ 
+      where: { 
+        username,
+        tenant_id: tenantRow.id 
+      }
+    });
+
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -33,6 +42,9 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Update last login
+    await user.update({ last_login: new Date() });
+
     const token = jwt.sign({
       id: user.id,
       username: user.username,
@@ -40,15 +52,22 @@ router.post('/login', async (req, res) => {
       tenant_id: user.tenant_id,
     }, JWT_SECRET, { expiresIn: '12h' });
 
-    res.json({ token, user: {username: user.username, role: user.role, tenant: user.tenant_id} });
+    res.json({ 
+      token, 
+      user: {
+        username: user.username, 
+        role: user.role, 
+        tenant: user.tenant_id
+      } 
+    });
 
   } catch (err) {
-    console.error('Error during login:', err.message);
+    console.error('Error during login:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-router.post('/register', registerLimiter, validateRolePublic, async (req, res) => {
+router.post('/register', [registerLimiter, validateRolePublic], async (req, res) => {
   try {
     let { username, password, role, tenant_id } = req.body;
 
@@ -83,9 +102,12 @@ router.post('/register', registerLimiter, validateRolePublic, async (req, res) =
     const cleanRole = role.trim().toLowerCase();
     
     // Cek user sudah ada atau belum di tenant (case-insensitive)
-    const existingUser = db.prepare(
-      'SELECT * FROM users WHERE LOWER(username) = ? AND tenant_id = ?'
-    ).get(cleanUsername, tenantId);
+    const existingUser = await User.findOne({
+      where: {
+        username: cleanUsername,
+        tenant_id: tenantId
+      }
+    });
     
     if (existingUser) {
       return res.status(409).json({ error: 'Username already exists in this tenant' });
@@ -97,9 +119,13 @@ router.post('/register', registerLimiter, validateRolePublic, async (req, res) =
     
     // Insert user ke database
     const createdAt = new Date().toISOString();
-    const insertResult = db.prepare(
-      'INSERT INTO users (username, password, role, tenant_id, created_at) VALUES (?, ?, ?, ?, ?)'
-    ).run(cleanUsername, hashedPassword, cleanRole, tenantId, createdAt);
+    const newUser = await User.create({
+      username: cleanUsername,
+      password: hashedPassword,
+      role: cleanRole,
+      tenant_id: tenantId,
+      created_at: createdAt
+    });
     
     // Log successful registration (tanpa sensitive data)
     console.log(`User registered successfully: ${cleanUsername}, role: ${cleanRole}, tenant: ${tenantId}`);
@@ -107,7 +133,7 @@ router.post('/register', registerLimiter, validateRolePublic, async (req, res) =
     res.status(201).json({ 
       message: 'User registered successfully',
       user: {
-        id: insertResult.lastInsertRowid,
+        id: newUser.id,
         username: cleanUsername,
         role: cleanRole,
         tenant_id: tenantId
@@ -130,7 +156,7 @@ router.post('/register', registerLimiter, validateRolePublic, async (req, res) =
   }
 });
 
-router.post('/register/tenant', registerLimiter, authenticate, checkRole(['superadmin', 'admin']),async (req, res) => {
+router.post('/register/tenant', registerLimiter, authenticateToken, checkRole(['superadmin', 'admin']), async (req, res) => {
   try {
     let { username, password, role, tenant_id } = req.body;
 
@@ -193,9 +219,12 @@ switch (req.user.role) {
     const cleanRole = role.trim().toLowerCase();
     
     // Cek user sudah ada atau belum di tenant (case-insensitive)
-    const existingUser = db.prepare(
-      'SELECT * FROM users WHERE LOWER(username) = ? AND tenant_id = ?'
-    ).get(cleanUsername, tenantId);
+    const existingUser = await User.findOne({
+      where: {
+        username: cleanUsername,
+        tenant_id: tenantId
+      }
+    });
     
     if (existingUser) {
       return res.status(409).json({ error: 'Username already exists in this tenant' });
@@ -207,9 +236,13 @@ switch (req.user.role) {
     
     // Insert user ke database
     const createdAt = new Date().toISOString();
-    const insertResult = db.prepare(
-      'INSERT INTO users (username, password, role, tenant_id, created_at) VALUES (?, ?, ?, ?, ?)'
-    ).run(cleanUsername, hashedPassword, cleanRole, tenantId, createdAt);
+    const newUser = await User.create({
+      username: cleanUsername,
+      password: hashedPassword,
+      role: cleanRole,
+      tenant_id: tenantId,
+      created_at: createdAt
+    });
     
     // Log successful registration (tanpa sensitive data)
     console.log(`User registered successfully: ${cleanUsername}, role: ${cleanRole}, tenant: ${tenantId}`);
@@ -217,7 +250,7 @@ switch (req.user.role) {
     res.status(201).json({ 
       message: 'User registered successfully',
       user: {
-        id: insertResult.lastInsertRowid,
+        id: newUser.id,
         username: cleanUsername,
         role: cleanRole,
         tenant_id: tenantId

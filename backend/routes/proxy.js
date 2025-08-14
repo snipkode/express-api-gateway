@@ -4,6 +4,7 @@ const router = express.Router();
 const db = require('../db');
 const rateLimit = require('express-rate-limit');
 const dynamicRateLimiter = require('../dynamicRateLimiter');
+const { Service } = require('../models');
 
 // Gunakan object untuk menyimpan instance rate limiter yang sudah dibuat.
 // Ini mencegah pembuatan rate limiter baru di setiap request.
@@ -14,22 +15,30 @@ const rateLimiters = {};
  * Menyimpan informasi service di req.service.
  */
 const findServiceMiddleware = async (req, res, next) => {
-  const { version, serviceName } = req.params;
-  const tenantId = req.user.tenant_id;
+  try {
+    const { version, serviceName } = req.params;
+    const tenantId = req.user.tenant_id;
 
-  // Mencari service di database.
-  const service = db.prepare(`
-    SELECT * FROM services WHERE tenant_id = ? AND version = ? AND name = ?
-  `).get(tenantId, version, serviceName);
+    const service = await Service.findOne({
+      where: {
+        tenant_id: tenantId,
+        version: version,
+        name: serviceName,
+        status: 'active'
+      }
+    });
 
-  if (!service) {
-    return res.status(404).json({ error: 'Service not found' });
+    if (!service) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    req.service = service.toJSON();
+    next();
+  } catch (error) {
+    console.error('Service lookup error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
-
-  req.service = service;
-  next();
 };
-
 
 /**
  * Middleware untuk mem-proxy request ke target service.
@@ -41,7 +50,7 @@ const proxyMiddleware = async (req, res, next) => {
   try {
     // Construct target URL more robustly.
     const targetUrl = `${service.target}${req.originalUrl.replace(`/api/${version}/${serviceName}`, '')}`;
-    
+
     // Build axios config
     const axiosConfig = {
       method: req.method,
